@@ -33,9 +33,10 @@ A repo's docs serve two audiences, each with a shared (committed) file and an op
 `README.local.md` for humans. They drift out of date after a working session, and content lands
 in the wrong place — a machine-specific path baked into a shared file, or Claude-only notes
 cluttering a `README`. doc-sweep enforces these **audience rules** (a bundled default you can
-override per project): its two skills audit doc health (`audit-docs`) and revise docs from what
-changed (`revise-docs`), keeping each piece in its right home — and per-developer content in the
-`.local.md` twin. → [details](plugins/doc-sweep/)
+override per project): its skills audit doc health (`audit-docs`), revise docs from what changed
+(`revise-docs`), and scaffold a project-specific rules overlay (`init-audience-rules`) — keeping
+each piece in its right home, and per-developer content in the `.local.md` twin. →
+[details](plugins/doc-sweep/)
 
 ```text
 /plugin install doc-sweep@funbox
@@ -51,7 +52,7 @@ README, and CHANGELOG. Plugins roll on `main` — every commit is the current ve
 .claude-plugin/marketplace.json   # the funbox catalog (lists each plugin)
 plugins/
   vscode-thinking-display/        # plugin: VS Code thinking-display patch
-  doc-sweep/                      # plugin: documentation audit + revise skills
+  doc-sweep/                      # plugin: documentation audit, revise, and rules skills
 ```
 
 Adding a plugin = a new self-contained dir under `plugins/` plus one entry in

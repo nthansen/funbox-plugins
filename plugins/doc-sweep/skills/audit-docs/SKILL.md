@@ -1,21 +1,32 @@
 ---
 name: audit-docs
 description: Audit all CLAUDE.md files across the repo for quality, currency, and correct audience targeting. Not session-specific — use any time to review documentation health.
+allowed-tools: Read, Glob, Grep, Skill
 ---
 
 Audit all CLAUDE.md files in this repo for quality, currency, and correct audience targeting.
 
 ## Audience rules (read first)
 
-Before proceeding, load the **documentation audience rules** — they define what belongs in
-each file type. Prefer the consuming project's rules; fall back to this plugin's bundled
-default:
+Before proceeding, load the **documentation audience rules**. They come in two layers — an
+invariant **base** plus a **tunable overlay** — and the effective rules are base + overlay:
 
-1. If `${CLAUDE_PROJECT_DIR}/.claude/context/audience-rules.md` exists, use it — plus
-   `${CLAUDE_PROJECT_DIR}/.claude/context/audience-rules.local.md` if present (personal
-   exceptions).
-2. Otherwise use this plugin's bundled default at
+1. Always load the base: `${CLAUDE_PLUGIN_ROOT}/context/audience-rules-base.md`. This is the
+   file-boundary law and is never overridden.
+2. Then load the overlay: the project's
+   `${CLAUDE_PROJECT_DIR}/.claude/context/audience-rules.md` (plus `audience-rules.local.md` if
+   present, for personal exceptions) if it exists; otherwise the bundled default overlay at
    `${CLAUDE_PLUGIN_ROOT}/context/audience-rules.md`.
+
+The overlay may add file types and refine per-file contents and shell/path conventions, but
+never reassigns a file's audience or scope. Apply base + overlay together as the effective
+ruleset.
+
+In your report, state in **one short line** which layers are in effect — e.g.
+`Rules loaded: base + default overlay`, `base + project overlay`, and append `+ local
+(audience-rules.local.md)` when present. Always show this (it's a health fact, not a nudge), so
+the repo being on default rules is never hidden — even if the `/init-audience-rules` pointer was
+silenced in `revise-docs`.
 
 ## Process
 

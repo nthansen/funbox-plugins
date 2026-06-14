@@ -11,6 +11,13 @@ self-contained under `plugins/`.
 - `plugins/<name>/{README.md,CHANGELOG.md}` — required for every plugin.
 - `plugins/<name>/skills/<skill>/SKILL.md` — skills; frontmatter `name` must match the skill directory.
 - `scripts/validate-marketplace.mjs` — the validator; `.github/workflows/validate.yml` runs it in CI.
+- `.claude/context/audience-rules.md` — funbox dogfoods **doc-sweep**; this is the repo's
+  documentation **audience-rules overlay**, layered on doc-sweep's bundled base
+  (`plugins/doc-sweep/context/audience-rules-base.md`). It holds only funbox's deltas; the base
+  owns the CLAUDE-vs-README boundary law.
+- `doc-sweep`'s `init-audience-rules` skill is **`disable-model-invocation: true` on purpose**
+  (manual-only `/`-command): auto-invocation over-triggers on ordinary CLAUDE.md-vs-README doc
+  talk. Don't remove it — `revise-docs`/`audit-docs` stay model-invocable.
 
 ## Versioning — read before touching a version
 
@@ -32,6 +39,10 @@ self-contained under `plugins/`.
 - CI also runs the **official `claude plugin validate`** per plugin (no `--strict`, so the
   intentionally-omitted `version` isn't flagged), plus `bash -n`, ShellCheck, PowerShell
   parse, and gitleaks.
+- The validator checks SKILL.md frontmatter with **regex, not a YAML parser** — it can pass
+  malformed YAML (e.g. an unquoted `key: value` colon-space inside a `description`) that fails
+  at load time. Rely on `claude plugin validate` for frontmatter correctness, and keep `: ` and
+  other YAML-significant punctuation out of unquoted frontmatter scalars.
 
 ## Local testing
 

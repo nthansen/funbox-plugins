@@ -6,7 +6,8 @@ These rules are strictly enforced across all doc skills.
 |---|---|---|---|
 | `CLAUDE.md` | Claude only | Team-shared, checked into git | Commands, gotchas, non-obvious patterns, architectural constraints, tool config warnings. Never human-facing content. |
 | `CLAUDE.local.md` | Claude only | Personal/local, gitignored | Local paths, personal deploy scripts, machine-specific config, anything that varies per developer. If it references a path on a specific machine or a personal tool, it belongs here not in `CLAUDE.md`. |
-| `README.md` | Humans only | — | How to build, run, and use the software. Keep commands accurate. Never include Claude-specific guidance. |
+| `README.md` | Humans only | Team-shared, checked into git | How to build, run, and use the software. Keep commands accurate. Never include Claude-specific guidance. |
+| `README.local.md` | Humans only | Personal/local, gitignored | Machine-specific human-facing notes: local setup commands, personal paths, per-developer run instructions. The README's `.local` twin — keep per-developer content here, out of the committed `README.md`. (See the `.local.md` convention below.) |
 
 Glob for CLAUDE.md files: `**/CLAUDE*.md` — covers all subdirectories including `CLAUDE.local.md` variants.
 

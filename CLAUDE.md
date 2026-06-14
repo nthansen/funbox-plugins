@@ -27,8 +27,11 @@ self-contained under `plugins/`.
   `git config core.hooksPath .githooks`.
 - It enforces: marketplace/plugin structure; **required README + CHANGELOG per plugin**;
   SKILL.md frontmatter; **`allowed-tools` must be scoped** (no bare or wildcard
-  `Bash`/`PowerShell`); cross-marketplace deps must be allowlisted; a danger-pattern scan.
-- CI additionally runs `bash -n`, ShellCheck, PowerShell parse, and gitleaks.
+  `Bash`/`PowerShell`); cross-marketplace deps must be allowlisted; orphan plugin dirs; a
+  danger-pattern scan.
+- CI also runs the **official `claude plugin validate`** per plugin (no `--strict`, so the
+  intentionally-omitted `version` isn't flagged), plus `bash -n`, ShellCheck, PowerShell
+  parse, and gitleaks.
 
 ## Local testing
 

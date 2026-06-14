@@ -1,0 +1,30 @@
+#!/usr/bin/env sh
+# funbox pre-commit hook — runs the same validator CI uses, for fast local feedback.
+#
+# Enable it once per clone:
+#   git config core.hooksPath .githooks
+#
+# This is convenience only, NOT the enforcement layer: it's bypassable with
+# `--no-verify` and absent for contributors who don't enable it. CI
+# (.github/workflows/validate.yml) + branch protection are what actually gate merges.
+
+# Official manifest/frontmatter validation, if the claude CLI is installed.
+if command -v claude >/dev/null 2>&1; then
+  for p in plugins/*/; do
+    [ -e "$p" ] || continue
+    if ! claude plugin validate "$p"; then
+      echo "pre-commit: 'claude plugin validate $p' failed. Fix it, or bypass with 'git commit --no-verify'." >&2
+      exit 1
+    fi
+  done
+fi
+
+# Repo policy validator.
+if command -v node >/dev/null 2>&1; then
+  if ! node scripts/validate-marketplace.mjs; then
+    echo "pre-commit: funbox validation failed. Fix the above, or bypass with 'git commit --no-verify'." >&2
+    exit 1
+  fi
+else
+  echo "pre-commit: node not found — skipping local validation (CI still enforces it)." >&2
+fi

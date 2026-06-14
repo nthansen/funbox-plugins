@@ -1,0 +1,21 @@
+{
+  "name": "funbox",
+  "owner": {
+    "name": "nthansen",
+    "url": "https://github.com/nthansen"
+  },
+  "description": "funbox — a Claude Code plugin marketplace.",
+  "allowCrossMarketplaceDependenciesOn": ["claude-plugins-official"],
+  "plugins": [
+    {
+      "name": "vscode-thinking-display",
+      "source": "./plugins/vscode-thinking-display",
+      "description": "Patch (or restore) the VS Code Claude Code extension so Opus/Fable models render thinking summaries."
+    },
+    {
+      "name": "doc-sweep",
+      "source": "./plugins/doc-sweep",
+      "description": "Keep your docs swept: audit CLAUDE.md/README health, and revise docs from session learnings — split by audience."
+    }
+  ]
+}

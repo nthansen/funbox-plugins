@@ -1,0 +1,67 @@
+name: validate
+
+# Authoritative contribution gate. Runs on every PR and on pushes to main.
+# Make this a *required* status check in branch protection so PRs can't merge red.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Authoritative schema/frontmatter/hooks validation (official tooling).
+      # No --strict: it treats our intentional omitted `version` (rolling channel) as an
+      # error. Real schema/frontmatter errors still fail; advisory warnings don't.
+      - name: Official manifest validation (claude plugin validate)
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          for p in plugins/*/; do
+            echo "::group::claude plugin validate $p"
+            claude plugin validate "$p"
+            echo "::endgroup::"
+          done
+
+      # Repo policy the official validator doesn't cover: required README+CHANGELOG,
+      # scoped allowed-tools, danger-pattern scan, cross-marketplace allowlist, orphan dirs.
+      - name: Marketplace & plugin policy
+        run: node scripts/validate-marketplace.mjs
+
+      - name: Shell script syntax (bash -n)
+        run: |
+          set -euo pipefail
+          found=$(find plugins -name '*.sh' -print0 | tr '\0' '\n' | sed '/^$/d' || true)
+          if [ -n "$found" ]; then
+            find plugins -name '*.sh' -print0 | xargs -0 -n1 bash -n
+          fi
+
+      # Use the runner's pre-installed shellcheck — avoids a third-party action pinned to a
+      # moving @master ref (supply-chain hygiene).
+      - name: ShellCheck
+        run: find plugins -name '*.sh' -print0 | xargs -0 -r shellcheck
+
+      - name: PowerShell syntax
+        shell: pwsh
+        run: |
+          $fail = $false
+          Get-ChildItem -Recurse plugins -Filter *.ps1 | ForEach-Object {
+            $errs = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$null, [ref]$errs) | Out-Null
+            if ($errs) { $fail = $true; Write-Error "Parse errors in $($_.FullName): $($errs -join '; ')" }
+          }
+          if ($fail) { exit 1 }
+
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

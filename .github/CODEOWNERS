@@ -1,0 +1,4 @@
+# Every change requires review from a maintainer.
+# Combined with "Require review from Code Owners" in branch protection, this means
+# no PR merges without an explicit approval here.
+* @nthansen

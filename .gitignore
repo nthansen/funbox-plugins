@@ -1,0 +1,11 @@
+# Backups created by the patch scripts
+*.orig
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+
+# Personal/local notes — the ".local.md" convention stays out of git
+# (CLAUDE.local.md, audience-rules.local.md, etc.)
+*.local.md

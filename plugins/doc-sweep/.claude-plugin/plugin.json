@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "doc-sweep",
+  "description": "Keep your docs swept: audit CLAUDE.md/README health, and revise docs from session learnings — split by audience (CLAUDE.md for Claude, README.md for humans).",
+  "author": {
+    "name": "nthansen",
+    "url": "https://github.com/nthansen"
+  },
+  "homepage": "https://github.com/nthansen/funbox-plugins/tree/main/plugins/doc-sweep",
+  "repository": "https://github.com/nthansen/funbox-plugins",
+  "keywords": [
+    "claude-code",
+    "documentation",
+    "claude-md",
+    "readme",
+    "docs",
+    "audit"
+  ],
+  "dependencies": [
+    { "name": "claude-md-management", "marketplace": "claude-plugins-official" }
+  ]
+}

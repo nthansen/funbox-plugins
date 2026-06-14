@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "vscode-thinking-display",
+  "description": "Patch (or restore) the VS Code Claude Code extension so Opus/Fable models render thinking summaries.",
+  "author": {
+    "name": "nthansen",
+    "url": "https://github.com/nthansen"
+  },
+  "homepage": "https://github.com/nthansen/funbox-plugins/tree/main/plugins/vscode-thinking-display",
+  "repository": "https://github.com/nthansen/funbox-plugins",
+  "keywords": [
+    "vscode",
+    "claude-code",
+    "thinking",
+    "opus",
+    "fable",
+    "patch"
+  ]
+}

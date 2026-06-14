@@ -7,6 +7,8 @@ place:
 - **`CLAUDE.local.md`** — your machine-specific paths, tools, and config, kept out of the
   shared file and gitignored so it never leaks into the team's docs.
 - **`README.md`** — for humans: how to build, run, and use the project.
+- **`README.local.md`** — your machine-specific human-facing notes (e.g. local setup
+  commands), kept out of the shared `README` and gitignored.
 
 After a working session these fall out of date, and content drifts across the boundaries — a
 local path hardcoded into the shared `CLAUDE.md`, or Claude-only instructions cluttering the

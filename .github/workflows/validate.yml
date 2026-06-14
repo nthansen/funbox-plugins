@@ -14,13 +14,13 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         # gitleaks (below) scans the PR's commit range and needs each commit's parent, so the
         # default shallow fetch-depth:1 makes `<sha>^` unresolvable. Fetch full history.
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '20'
 
@@ -66,6 +66,6 @@ jobs:
           if ($fail) { exit 1 }
 
       - name: Secret scan (gitleaks)
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

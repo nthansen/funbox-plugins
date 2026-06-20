@@ -25,12 +25,16 @@ export function walkFiles(skillDir) {
 }
 
 // sha256 over (relPath \0 bytes \0) for every source file, in sorted order.
+// Line endings are normalized (CRLF/CR → LF) before hashing so benchmarks
+// stay valid across platforms (Windows working tree vs Linux CI).
 export function computeSourceHash(skillDir) {
   const h = createHash('sha256');
   for (const rel of walkFiles(skillDir)) {
     h.update(rel, 'utf8');
     h.update('\0');
-    h.update(readFileSync(join(skillDir, rel)));
+    const bytes = readFileSync(join(skillDir, rel));
+    const normalized = bytes.toString('latin1').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    h.update(Buffer.from(normalized, 'latin1'));
     h.update('\0');
   }
   return 'sha256:' + h.digest('hex');

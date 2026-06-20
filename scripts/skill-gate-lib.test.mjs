@@ -136,3 +136,16 @@ test('discoverSkills skips *-workspace run directories', () => {
   assert.ok(!found.includes('real-skill-workspace'), 'must not treat *-workspace as a skill');
   rmSync(root, { recursive: true, force: true });
 });
+
+test('computeSourceHash normalizes line endings (CRLF == LF)', () => {
+  const lf = mkdtempSync(join(tmpdir(), 'skillgate-'));
+  const crlf = mkdtempSync(join(tmpdir(), 'skillgate-'));
+  for (const dir of [lf, crlf]) { mkdirSync(join(dir, 'evals')); }
+  writeFileSync(join(lf, 'SKILL.md'), 'line one\nline two\n');
+  writeFileSync(join(crlf, 'SKILL.md'), 'line one\r\nline two\r\n');
+  writeFileSync(join(lf, 'evals', 'evals.json'), '{"a":1}\n');
+  writeFileSync(join(crlf, 'evals', 'evals.json'), '{"a":1}\r\n');
+  assert.equal(computeSourceHash(lf), computeSourceHash(crlf), 'CRLF and LF must hash identically');
+  rmSync(lf, { recursive: true, force: true });
+  rmSync(crlf, { recursive: true, force: true });
+});

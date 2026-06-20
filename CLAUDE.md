@@ -48,6 +48,13 @@ self-contained under `plugins/`.
   hash-verified `evals/benchmark.json`; (re)generate benchmarks with the
   `/skill-gate` command (needs `skill-creator` installed). Run artifacts live in
   gitignored `*-workspace/`. See CONTRIBUTING.md.
+- CI also runs **`openspec validate --strict --all`** (structural spec/change rules)
+  plus `scripts/check-openspec-hygiene.mjs`, which catches two things `validate`
+  accepts: a **TBD/placeholder `## Purpose`** in `openspec/specs/**` (archive seeds it
+  and `validate` passes it), and a **fully-implemented change left un-archived**
+  (`tasks.md` all `[x]` but still under `openspec/changes/`). Both **self-scope** — no
+  specs / no active changes ⇒ no findings — so OpenSpec is never forced onto a PR that
+  doesn't use it (bug fixes / docs / config tweaks stay direct-PR per the routing table).
 
 ## Local testing
 

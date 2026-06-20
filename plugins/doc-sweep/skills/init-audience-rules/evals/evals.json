@@ -1,0 +1,15 @@
+{
+  "skill_name": "init-audience-rules",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Initialize a project-specific audience-rules overlay for this repo. Our primary environment is Windows: we ship PowerShell (.ps1) scripts and a Makefile, and we keep a CHANGELOG.md per component. Capture our conventions.",
+      "assertions": [
+        "Creates .claude/context/audience-rules.md in the project",
+        "The overlay does NOT restate the invariant base file-boundary law (no base 'invariant audience rules' preamble and no reproduced base audience table header)",
+        "The overlay records project-specific conventions addressing the shell/path stance or an added file type from the prompt (e.g. PowerShell, Makefile, or CHANGELOG.md)"
+      ],
+      "files": []
+    }
+  ]
+}

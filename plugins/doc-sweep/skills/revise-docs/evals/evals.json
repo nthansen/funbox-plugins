@@ -1,0 +1,15 @@
+{
+  "skill_name": "revise-docs",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "This session we renamed the build entrypoint: the old `bash build.sh` is now `make build`, and the way humans run the app changed from `./run.sh` to `make run`. Update the docs to capture these learnings.",
+      "assertions": [
+        "Reports which audience-rule layers are in effect (a 'Rules loaded:' line)",
+        "Updates CLAUDE.md to capture the Claude-facing build-command change (make build)",
+        "Updates README.md (human-facing) with the corrected run command (make run), not CLAUDE.md"
+      ],
+      "files": []
+    }
+  ]
+}

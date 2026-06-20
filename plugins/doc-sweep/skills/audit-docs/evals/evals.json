@@ -1,0 +1,15 @@
+{
+  "skill_name": "audit-docs",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Audit the CLAUDE.md files in this repo for quality, currency, and correct audience targeting.",
+      "assertions": [
+        "The report states which audience-rule layers are in effect (a 'Rules loaded:' line)",
+        "It flags human-facing content living in CLAUDE.md as belonging in a README",
+        "It flags a machine-specific local path in CLAUDE.md as belonging in CLAUDE.local.md"
+      ],
+      "files": []
+    }
+  ]
+}

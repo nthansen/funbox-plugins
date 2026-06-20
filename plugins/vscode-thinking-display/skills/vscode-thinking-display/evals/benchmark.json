@@ -1,0 +1,39 @@
+{
+  "skill": "vscode-thinking-display",
+  "pass_rate": 1,
+  "threshold": 0.9,
+  "model": "claude-opus-4-8",
+  "source_hash": "sha256:b367bb856dd94874f1cbcf27175bd25f4a48f8f0037b31961ec828592a2a8ac0",
+  "results": [
+    {
+      "eval_id": 1,
+      "text": "The --thinking-display chokepoint is rewritten so an omitted display defaults to \"summarized\"",
+      "passed": true,
+      "evidence": "patched fixture contains B.push(\"--thinking-display\",l.display??\"summarized\")"
+    },
+    {
+      "eval_id": 1,
+      "text": "A pristine .js.orig backup is created for the modified bundle",
+      "passed": true,
+      "evidence": "extension.js.orig created on first patch"
+    },
+    {
+      "eval_id": 1,
+      "text": "Re-running the patch is idempotent (reports ALREADY PATCHED and makes no further change)",
+      "passed": true,
+      "evidence": "second patch run logged \"ALREADY PATCHED\", file unchanged"
+    },
+    {
+      "eval_id": 2,
+      "text": "restore reverts the patched bundle byte-for-byte to the pristine original",
+      "passed": true,
+      "evidence": "cmp -s patched-then-restored vs pristine: identical"
+    },
+    {
+      "eval_id": 2,
+      "text": "the .js.orig backup is consumed/removed after restore",
+      "passed": true,
+      "evidence": "extension.js.orig absent after restore display"
+    }
+  ]
+}

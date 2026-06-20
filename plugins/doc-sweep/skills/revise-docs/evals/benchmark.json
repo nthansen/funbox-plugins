@@ -1,0 +1,27 @@
+{
+  "skill": "revise-docs",
+  "pass_rate": 1,
+  "threshold": 0.9,
+  "model": "claude-opus-4-8",
+  "source_hash": "sha256:ca58ea606c3e4a7e1e46d4174a5eba3f1ca2d326c69d273b0d559df0432e4128",
+  "results": [
+    {
+      "eval_id": 1,
+      "text": "Reports which audience-rule layers are in effect (a 'Rules loaded:' line)",
+      "passed": true,
+      "evidence": "output.log: 'Rules loaded: base + default overlay · tailor this repo with /init-audience-rules'"
+    },
+    {
+      "eval_id": 1,
+      "text": "Updates CLAUDE.md to capture the Claude-facing build-command change (make build)",
+      "passed": true,
+      "evidence": "proj/CLAUDE.md contains 'make build'; stale 'bash build.sh' removed"
+    },
+    {
+      "eval_id": 1,
+      "text": "Updates README.md (human-facing) with the corrected run command (make run), not CLAUDE.md",
+      "passed": true,
+      "evidence": "proj/README.md contains 'make run'; absent from CLAUDE.md (audience separation)"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "skill": "init-audience-rules",
+  "pass_rate": 1,
+  "threshold": 0.9,
+  "model": "claude-opus-4-8",
+  "source_hash": "sha256:c5d63b17d4ee2e958c5b5081f805469e52f9e48ca6bf87dea6658ca89025143b",
+  "results": [
+    {
+      "eval_id": 1,
+      "text": "Creates .claude/context/audience-rules.md in the project",
+      "passed": true,
+      "evidence": "test -f overlay → exists"
+    },
+    {
+      "eval_id": 1,
+      "text": "Overlay does NOT restate the invariant base file-boundary law",
+      "passed": true,
+      "evidence": "base 'invariant audience rules' phrase and base table header both absent"
+    },
+    {
+      "eval_id": 1,
+      "text": "Overlay records project-specific conventions (PowerShell/Makefile/CHANGELOG)",
+      "passed": true,
+      "evidence": "overlay adds CHANGELOG.md row + PowerShell/Makefile shell stance"
+    }
+  ]
+}

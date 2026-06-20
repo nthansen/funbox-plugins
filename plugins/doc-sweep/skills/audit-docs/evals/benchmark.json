@@ -1,0 +1,27 @@
+{
+  "skill": "audit-docs",
+  "pass_rate": 1,
+  "threshold": 0.9,
+  "model": "claude-opus-4-8",
+  "source_hash": "sha256:6d04a47f3ffa0503d78bf4ded0bfe8e7687b19e8e308dd20edf098e021348aea",
+  "results": [
+    {
+      "eval_id": 1,
+      "text": "The report states which audience-rule layers are in effect (a 'Rules loaded:' line)",
+      "passed": true,
+      "evidence": "report header: 'Rules loaded: base + default overlay'"
+    },
+    {
+      "eval_id": 1,
+      "text": "It flags human-facing content living in CLAUDE.md as belonging in a README",
+      "passed": true,
+      "evidence": "report 'PROBLEM A' flags the welcome/marketing line as belonging in README.md (file-boundary violation)"
+    },
+    {
+      "eval_id": 1,
+      "text": "It flags a machine-specific local path in CLAUDE.md as belonging in CLAUDE.local.md",
+      "passed": true,
+      "evidence": "report 'PROBLEM B' flags 'C:\\Users\\norm\\...push.ps1' as belonging in CLAUDE.local.md"
+    }
+  ]
+}

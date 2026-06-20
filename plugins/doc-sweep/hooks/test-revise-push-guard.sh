@@ -48,5 +48,14 @@ run "self-skip" "/tmp/cfg6.json" "$(js "$R2" 'git push')" allow
 # 7. error/fail-open: cwd not a repo → allow
 run "fail-open" "" "$(js "/nonexistent-xyz" 'git push')" allow
 
+# 8. git -C <path> push with non-doc change → deny (space-separated global opt)
+R="$(mk_repo)"; mark "$R"; commitfile "$R" src/app.js; run "dash-C-deny" "" "$(js "$R" "git -C $R push")" deny
+# 9. --no-verify bypass → allow despite non-doc
+R="$(mk_repo)"; mark "$R"; commitfile "$R" src/app.js; run "no-verify-bypass" "" "$(js "$R" 'git push --no-verify')" allow
+# 10. multi-level docs-only change → allow (case glob docs/* matches any depth)
+R="$(mk_repo)"; mark "$R"; commitfile "$R" docs/api/ref.md; run "deep-docs-allow" "" "$(js "$R" 'git push')" allow
+# 11. minimal docMode: CHANGELOG change is non-doc → deny
+R="$(mk_repo)"; mark "$R"; commitfile "$R" CHANGELOG.md; printf %s '{"docMode":"minimal","repoScope":"all"}' > /tmp/cfg11.json; run "minimal-changelog-deny" "/tmp/cfg11.json" "$(js "$R" 'git push')" deny
+
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

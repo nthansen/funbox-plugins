@@ -27,7 +27,7 @@ cmd="$(getfield tool_input.command)" || allow
 cwd="$(getfield cwd)" || allow
 
 # Only gate git push (git, optional global flags, then the push subcommand).
-printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+-[^[:space:]]+)*[[:space:]]+push([[:space:]]|$)' || allow
+printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+-[^[:space:]]*([[:space:]]+[^-[:space:]][^[:space:]]*)?)*[[:space:]]+push([[:space:]]|$)' || allow
 # Explicit bypass.
 printf '%s' "$cmd" | grep -Eq 'DOC_SWEEP_REVISE_SKIP=1|--no-verify' && allow
 

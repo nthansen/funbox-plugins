@@ -20,6 +20,16 @@
         "The human-facing changes are NOT written into CLAUDE.md (no pipx/foo serve in CLAUDE.md); CLAUDE.md's unrelated content is left intact"
       ],
       "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Personal note from this session: on MY machine the deploy key lives at C:/Users/me/keys/deploy.pem and I deploy by running my personal ~/scripts/push.sh - capture this so I don't forget.",
+      "assertions": [
+        "Routes the machine-specific/personal content to CLAUDE.local.md (the gitignored .local twin), per the invariant base .local convention",
+        "Does NOT write the personal key path / personal script into the shared, committed CLAUDE.md",
+        "Reports which audience-rule layers are in effect (a 'Rules loaded:' line)"
+      ],
+      "files": []
     }
   ]
 }

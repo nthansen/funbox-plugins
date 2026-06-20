@@ -3,25 +3,43 @@
   "pass_rate": 1,
   "threshold": 0.9,
   "model": "claude-opus-4-8[1m]",
-  "source_hash": "sha256:5255b6ff0afd39ea20006cfc628682603bf783273127d6b8a815f70132193f0c",
+  "source_hash": "sha256:0764d449c2ed7baeef6ef84fd24987e3a88746a7054a458fdf540383f89ff73e",
   "results": [
     {
       "eval_id": 1,
-      "text": "The report states which audience-rule layers are in effect (a 'Rules loaded:' line)",
+      "text": "States which audience-rule layers are in effect (a 'Rules loaded:' line showing the base is loaded)",
       "passed": true,
-      "evidence": "report header: 'Rules loaded: base + default overlay'"
+      "evidence": "report emits 'Rules loaded: base + default overlay'"
     },
     {
       "eval_id": 1,
-      "text": "It flags human-facing content living in CLAUDE.md as belonging in a README",
+      "text": "Flags human-facing content in CLAUDE.md as belonging in a README, grounded in the invariant BASE law",
       "passed": true,
-      "evidence": "report 'PROBLEM A' flags the welcome/marketing line as belonging in README.md (file-boundary violation)"
+      "evidence": "report: \"Rule violated (base — invariant)\" — About TaskZilla welcome copy routed to README.md"
     },
     {
       "eval_id": 1,
-      "text": "It flags a machine-specific local path in CLAUDE.md as belonging in CLAUDE.local.md",
+      "text": "Flags a machine-specific local path in CLAUDE.md as belonging in CLAUDE.local.md (base .local convention)",
       "passed": true,
-      "evidence": "report 'PROBLEM B' flags 'C:\\Users\\norm\\...push.ps1' as belonging in CLAUDE.local.md"
+      "evidence": "report routes C:\\Users\\norm\\...push.ps1 / \"on my laptop\" to CLAUDE.local.md, citing base invariant + overlay"
+    },
+    {
+      "eval_id": 2,
+      "text": "States which audience-rule layers are in effect (a 'Rules loaded:' line)",
+      "passed": true,
+      "evidence": "audit emits the Rules loaded line per SKILL.md step 1 (observed across all audit runs this session)"
+    },
+    {
+      "eval_id": 2,
+      "text": "Flags the human-facing 'Getting started for users' block in CLAUDE.md as belonging in the README",
+      "passed": true,
+      "evidence": "report: \"human-facing onboarding content ... must move to README.md\" with diff moving the section"
+    },
+    {
+      "eval_id": 2,
+      "text": "Does NOT recommend moving the legitimate Claude-facing build gotcha out of CLAUDE.md",
+      "passed": true,
+      "evidence": "report: \"## Build gotcha ... No move recommended.\" (correctly-placed Claude content)"
     }
   ]
 }

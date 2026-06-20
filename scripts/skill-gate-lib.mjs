@@ -63,6 +63,7 @@ export function discoverSkills(root) {
     const skillsDir = join(pluginsRoot, plugin, 'skills');
     if (!existsSync(skillsDir) || !statSync(skillsDir).isDirectory()) continue;
     for (const skill of readdirSync(skillsDir)) {
+      if (/-workspace$/.test(skill)) continue; // gitignored eval run artifacts, not skills
       const sdir = join(skillsDir, skill);
       if (statSync(sdir).isDirectory()) out.push(sdir);
     }

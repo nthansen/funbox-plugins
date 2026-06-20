@@ -5,7 +5,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { computeSourceHash } from './skill-gate-lib.mjs';
-import { loadThreshold, checkSkill } from './skill-gate-lib.mjs';
+import { loadThreshold, checkSkill, discoverSkills } from './skill-gate-lib.mjs';
 
 function makeSkill() {
   const dir = mkdtempSync(join(tmpdir(), 'skillgate-'));
@@ -124,4 +124,15 @@ test('checkSkill: per-skill threshold override is enforced', () => {
   const errs = checkSkill(dir, 0.9); // repo default 0.9, but skill demands 0.95
   assert.ok(errs.some((e) => /0\.95|below threshold/.test(e)));
   rmSync(dir, { recursive: true, force: true });
+});
+
+test('discoverSkills skips *-workspace run directories', () => {
+  const root = mkdtempSync(join(tmpdir(), 'repo-'));
+  const skills = join(root, 'plugins', 'p', 'skills');
+  mkdirSync(join(skills, 'real-skill'), { recursive: true });
+  mkdirSync(join(skills, 'real-skill-workspace'), { recursive: true });
+  const found = discoverSkills(root).map((d) => d.split(/[\\/]/).pop());
+  assert.ok(found.includes('real-skill'));
+  assert.ok(!found.includes('real-skill-workspace'), 'must not treat *-workspace as a skill');
+  rmSync(root, { recursive: true, force: true });
 });

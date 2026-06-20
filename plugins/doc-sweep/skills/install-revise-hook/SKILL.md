@@ -1,6 +1,6 @@
 ---
 name: install-revise-hook
-description: Install (or remove) an opt-in push-time guard that prompts /doc-sweep:revise-docs before `git push` when docs look stale. Use to set up, reconfigure, or uninstall the revise-docs push hook.
+description: Install (or remove) an opt-in push-time guard that prompts /doc-sweep:revise-docs-and-mark before `git push` when docs look stale. Use to set up, reconfigure, or uninstall the revise-docs push hook.
 allowed-tools:
   - Read
   - Write
@@ -16,9 +16,11 @@ disable-model-invocation: true
 # Install the revise-docs push guard
 
 Set up an opt-in Claude Code `PreToolUse` hook that blocks a `git push` when
-documentation looks stale (a non-doc file changed since the last `revise-docs` run),
-prompting you to run `/doc-sweep:revise-docs` first. **Nothing is installed until you
-run this and confirm.** The hook uses `node` (not `jq`) to parse the event JSON.
+documentation looks stale (a non-doc file changed since docs were last reviewed),
+prompting you to run `/doc-sweep:revise-docs-and-mark` first (it reviews docs via the
+unchanged `revise-docs` skill, then records the review snapshot the hook checks).
+**Nothing is installed until you run this and confirm.** The hook uses `node` (not
+`jq`) to parse the event JSON.
 
 ## Steps
 

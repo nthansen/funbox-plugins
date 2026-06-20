@@ -83,8 +83,10 @@ reports a `dependency-unsatisfied` error with the command to add it.
 
 The **revise-docs push guard** is an optional `PreToolUse` hook that blocks a Claude-driven
 `git push` when documentation looks stale — specifically, when a non-doc file has changed
-since the last `revise-docs` run. It prompts Claude to run `/doc-sweep:revise-docs`, commit
-any doc changes, and then push.
+since docs were last reviewed. It prompts Claude to run `/doc-sweep:revise-docs-and-mark`
+— a thin wrapper that runs the normal `revise-docs` review (unchanged) and then records the
+review snapshot the hook checks — commit any doc changes, and then push. The snapshot
+mechanism lives entirely in the guard; `revise-docs` itself is untouched.
 
 Nothing is installed automatically. To set it up, run:
 
@@ -108,7 +110,7 @@ The installer is interactive and asks you four questions before writing anything
 
 ### Bypass
 
-To let a push through without running `revise-docs`, prefix the command with the bypass
+To let a push through without reviewing docs, prefix the command with the bypass
 token or add `--no-verify`:
 
 ```bash

@@ -61,19 +61,26 @@ opt-in.
 - **Alternatives:** include `SKILL.md` as doc (misses stale skill docs);
   CLAUDE.md+README only (over-nags).
 
-### D4: Marker written by revise-docs closes the loop
-- **Choice:** `revise-docs` writes HEAD SHA to
-  `$(git rev-parse --git-common-dir)/doc-sweep-revise-marker` on completion, even when
-  it makes no doc changes.
-- **Rationale:** The retry push must pass; recording "reviewed to here" is the only way
-  to distinguish reviewed-from-unreviewed history deterministically in a shell hook.
-  **Ownership:** only `revise-docs` knows a review happened and to which commit, so it
-  *produces* the marker as its own review-progress record; the guard is merely a
-  *consumer*. The `revise-docs` SKILL.md therefore records the marker generically and
-  does **not** name the guard/installer — the skill stays coherent and useful even when
-  the guard is never installed.
-- **Alternatives:** session-id state (doesn't express "stale"); timestamp (SHA is
-  rebase-robust via fallback to `merge-base`).
+### D4: A guard-owned wrapper records the snapshot; revise-docs is untouched
+- **Choice:** The snapshot mechanism is **fully abstracted from `revise-docs`**. A new
+  guard-owned wrapper skill `revise-docs-and-mark` (1) invokes the unchanged
+  `doc-sweep:revise-docs` via the Skill tool, then (2) writes HEAD SHA to
+  `$(git rev-parse --git-common-dir)/doc-sweep-revise-marker` — even when no doc changes
+  were needed. The hook's deny message and the installer point users at this wrapper.
+  `revise-docs` itself gains **no** marker step and no knowledge of the guard.
+- **Rationale:** The retry push must pass; advancing the marker to HEAD after a review is
+  the only way to distinguish reviewed-from-unreviewed history deterministically in a
+  shell hook. The reviewing actor must do the advance — but it need not be `revise-docs`
+  itself: wrapping it keeps the base skill pure (operates as-is, usable with or without
+  the guard), with the entire snapshot concern owned by the guard feature. A passive
+  hook cannot do this: no `PreToolUse`/`PostToolUse`/`Stop` hook can detect "revise-docs
+  completed to commit X," and advancing on allowed-push would never close the loop (the
+  non-doc commits remain in `marker..HEAD`).
+- **Alternatives:** marker written *inside* `revise-docs` (rejected — couples the base
+  skill to an opt-in feature); a separate "mark only" command run after `revise-docs`
+  (rejected — two manual steps; the wrapper folds them into one). session-id state
+  (doesn't express "stale"); timestamp (SHA is rebase-robust via fallback to
+  `merge-base`).
 
 ### D5: Copy hook script to a stable path; fail-open
 - **Choice:** Installer copies the bundled hook to a stable, version-independent path

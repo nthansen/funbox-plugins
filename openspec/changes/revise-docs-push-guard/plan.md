@@ -218,10 +218,20 @@ git commit -m "$(printf 'feat(doc-sweep): add revise-push-guard PreToolUse hook 
 
 ---
 
-### Task 2: revise-docs advances the marker
+### Task 2: Snapshot wrapper — revise-docs-and-mark (SUPERSEDED framing)
+
+> **Design B (final):** the snapshot is owned by the **guard**, not the base skill.
+> Instead of editing `revise-docs`, create a wrapper skill
+> `plugins/doc-sweep/skills/revise-docs-and-mark/SKILL.md` that invokes the *unchanged*
+> `doc-sweep:revise-docs` via the Skill tool and then writes the marker (HEAD) to
+> `$(git rev-parse --git-common-dir)/doc-sweep-revise-marker` (even with no doc changes).
+> `revise-docs` is left untouched. The marker-write command below is unchanged; only its
+> home moved from revise-docs into the wrapper. See design.md §D4 and the spec's
+> "Snapshot owned by a guard wrapper" requirement.
 
 **Files:**
-- Modify: `plugins/doc-sweep/skills/revise-docs/SKILL.md`
+- Create: `plugins/doc-sweep/skills/revise-docs-and-mark/SKILL.md` (the wrapper)
+- (NOT modified: `plugins/doc-sweep/skills/revise-docs/SKILL.md` — stays as-is)
 
 **Interfaces:**
 - Produces: a documented final step that writes HEAD to `$(git rev-parse --git-common-dir)/doc-sweep-revise-marker`, which Task 1's hook reads.

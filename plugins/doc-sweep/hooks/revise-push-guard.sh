@@ -93,6 +93,6 @@ EOF
 
 if [ -n "$nondoc" ]; then
   # shellcheck disable=SC2086
-  emit_deny "Docs may be stale — non-doc file(s) changed since the last revise-docs run:${nondoc}. Run /doc-sweep:revise-docs to capture this session's doc learnings, commit any changes, then push again. (Add DOC_SWEEP_REVISE_SKIP=1 before the command, or --no-verify, to bypass.)"
+  emit_deny "Docs may be stale — non-doc file(s) changed since docs were last reviewed:${nondoc}. Run /doc-sweep:revise-docs-and-mark to review docs and record the review snapshot, commit any changes, then push again. (Add DOC_SWEEP_REVISE_SKIP=1 before the command, or --no-verify, to bypass.)"
 fi
 allow

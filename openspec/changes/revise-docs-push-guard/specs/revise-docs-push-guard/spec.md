@@ -45,19 +45,26 @@ push. A documentation file is one matching the configured doc-file set (default:
 - **WHEN** the Bash command is not a `git push`
 - **THEN** the hook allows the call without inspection
 
-### Requirement: Marker advanced by revise-docs
+### Requirement: Snapshot owned by a guard wrapper, not the base skill
 
-`revise-docs` SHALL, on completion, write the current `HEAD` commit to a per-clone
-marker resolved from the repository's common git directory, including when it makes no
-documentation changes. This marks history as reviewed up to that commit so the gate
-can distinguish reviewed from unreviewed work and a retried push is allowed.
+The review snapshot SHALL be recorded by a guard-owned wrapper skill, NOT by
+`revise-docs`. The wrapper SHALL invoke the unchanged `doc-sweep:revise-docs` skill and
+then write the current `HEAD` commit to a per-clone marker resolved from the
+repository's common git directory, including when no documentation changes were needed.
+`revise-docs` SHALL remain unmodified and SHALL NOT reference the guard. This marks
+history as reviewed up to that commit so the gate can distinguish reviewed from
+unreviewed work and a retried push is allowed.
 
-#### Scenario: Marker advances with no doc changes
-- **WHEN** `revise-docs` runs and determines no documentation needs updating
-- **THEN** it still advances the marker to the current HEAD
+#### Scenario: Base skill is untouched
+- **WHEN** the change is implemented
+- **THEN** `revise-docs` contains no marker/snapshot step and no reference to the guard or installer; it operates exactly as before
 
-#### Scenario: Retry after revise-docs is allowed
-- **WHEN** a push was denied, the user runs `revise-docs` (advancing the marker) and commits any doc changes, and pushes again
+#### Scenario: Wrapper advances the snapshot with no doc changes
+- **WHEN** the wrapper runs and `revise-docs` determines no documentation needs updating
+- **THEN** the wrapper still records the snapshot at the current HEAD
+
+#### Scenario: Retry after the wrapper is allowed
+- **WHEN** a push was denied, the user runs the wrapper (which reviews docs and records the snapshot) and commits any doc changes, and pushes again
 - **THEN** the gate finds no non-doc files after the marker and allows the push
 
 ### Requirement: Self-skip, bypass, and fail-open

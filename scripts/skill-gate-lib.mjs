@@ -35,3 +35,86 @@ export function computeSourceHash(skillDir) {
   }
   return 'sha256:' + h.digest('hex');
 }
+
+// append to scripts/skill-gate-lib.mjs
+export const DEFAULT_THRESHOLD = 0.9;
+
+function readJSON(path) {
+  return JSON.parse(readFileSync(path, 'utf8'));
+}
+
+export function loadThreshold(root) {
+  const cfg = join(root, '.claude', 'skill-gate.json');
+  if (!existsSync(cfg)) return DEFAULT_THRESHOLD;
+  try {
+    const t = readJSON(cfg).threshold;
+    return typeof t === 'number' ? t : DEFAULT_THRESHOLD;
+  } catch {
+    return DEFAULT_THRESHOLD;
+  }
+}
+
+// Every plugins/*/skills/*/ directory (absolute paths).
+export function discoverSkills(root) {
+  const out = [];
+  const pluginsRoot = join(root, 'plugins');
+  if (!existsSync(pluginsRoot)) return out;
+  for (const plugin of readdirSync(pluginsRoot)) {
+    const skillsDir = join(pluginsRoot, plugin, 'skills');
+    if (!existsSync(skillsDir) || !statSync(skillsDir).isDirectory()) continue;
+    for (const skill of readdirSync(skillsDir)) {
+      const sdir = join(skillsDir, skill);
+      if (statSync(sdir).isDirectory()) out.push(sdir);
+    }
+  }
+  return out;
+}
+
+// Returns an array of human-readable error strings ([] === passing).
+export function checkSkill(skillDir, repoDefault) {
+  const errs = [];
+  const label = skillDir;
+  const evalsPath = join(skillDir, 'evals', 'evals.json');
+  const benchPath = join(skillDir, 'evals', 'benchmark.json');
+
+  if (!existsSync(evalsPath)) {
+    errs.push(`${label}: missing evals/evals.json — define eval cases and run /skill-gate`);
+    return errs;
+  }
+  let evals;
+  try {
+    evals = readJSON(evalsPath);
+  } catch (e) {
+    errs.push(`${label}: evals/evals.json is invalid JSON — ${e.message}`);
+    return errs;
+  }
+  if (!Array.isArray(evals.evals) || evals.evals.length === 0) {
+    errs.push(`${label}: evals.json must define at least one eval case`);
+    return errs;
+  }
+
+  if (!existsSync(benchPath)) {
+    errs.push(`${label}: missing evals/benchmark.json — run /skill-gate to generate it`);
+    return errs;
+  }
+  let bench;
+  try {
+    bench = readJSON(benchPath);
+  } catch (e) {
+    errs.push(`${label}: evals/benchmark.json is invalid JSON — ${e.message}`);
+    return errs;
+  }
+
+  const fresh = computeSourceHash(skillDir);
+  if (bench.source_hash !== fresh) {
+    errs.push(`${label}: benchmark stale (source_hash mismatch) — re-run /skill-gate`);
+  }
+
+  const threshold = typeof evals.threshold === 'number' ? evals.threshold : repoDefault;
+  if (typeof bench.pass_rate !== 'number') {
+    errs.push(`${label}: benchmark.json missing numeric pass_rate`);
+  } else if (bench.pass_rate < threshold) {
+    errs.push(`${label}: pass_rate ${bench.pass_rate} below threshold ${threshold}`);
+  }
+  return errs;
+}

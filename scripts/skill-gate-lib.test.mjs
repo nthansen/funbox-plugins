@@ -5,6 +5,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { computeSourceHash } from './skill-gate-lib.mjs';
+import { loadThreshold, checkSkill } from './skill-gate-lib.mjs';
 
 function makeSkill() {
   const dir = mkdtempSync(join(tmpdir(), 'skillgate-'));
@@ -39,5 +40,88 @@ test('computeSourceHash changes when SKILL.md or evals.json changes', () => {
   const mid = computeSourceHash(dir);
   writeFileSync(join(dir, 'evals', 'evals.json'), '{"skill_name":"x","evals":[],"threshold":0.8}');
   assert.notEqual(computeSourceHash(dir), mid, 'assertion/eval edits must flip the hash');
+  rmSync(dir, { recursive: true, force: true });
+});
+
+// append to scripts/skill-gate-lib.test.mjs
+
+function passingBenchmark(dir, overrides = {}) {
+  const bm = {
+    skill: 'x',
+    pass_rate: 1.0,
+    threshold: 0.9,
+    model: 'claude-opus-4-8',
+    source_hash: computeSourceHash(dir),
+    results: [{ eval_id: 1, text: 'does the thing', passed: true, evidence: 'ok' }],
+    ...overrides,
+  };
+  writeFileSync(join(dir, 'evals', 'benchmark.json'), JSON.stringify(bm));
+  return bm;
+}
+
+test('loadThreshold reads repo default, falling back to 0.9', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'repo-'));
+  assert.equal(loadThreshold(dir), 0.9);
+  mkdirSync(join(dir, '.claude'));
+  writeFileSync(join(dir, '.claude', 'skill-gate.json'), '{"threshold":0.8}');
+  assert.equal(loadThreshold(dir), 0.8);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('checkSkill: missing evals.json fails', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'skillgate-'));
+  writeFileSync(join(dir, 'SKILL.md'), 'x');
+  const errs = checkSkill(dir, 0.9);
+  assert.ok(errs.some((e) => /evals\.json/.test(e)));
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('checkSkill: empty evals array fails', () => {
+  const dir = makeSkill();
+  const errs = checkSkill(dir, 0.9);
+  assert.ok(errs.some((e) => /at least one eval/.test(e)));
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('checkSkill: missing benchmark fails with re-run hint', () => {
+  const dir = makeSkill();
+  writeFileSync(join(dir, 'evals', 'evals.json'), '{"skill_name":"x","evals":[{"id":1,"prompt":"p"}]}');
+  const errs = checkSkill(dir, 0.9);
+  assert.ok(errs.some((e) => /\/skill-gate/.test(e)));
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('checkSkill: stale source_hash fails', () => {
+  const dir = makeSkill();
+  writeFileSync(join(dir, 'evals', 'evals.json'), '{"skill_name":"x","evals":[{"id":1,"prompt":"p"}]}');
+  passingBenchmark(dir, { source_hash: 'sha256:deadbeef' });
+  const errs = checkSkill(dir, 0.9);
+  assert.ok(errs.some((e) => /stale/.test(e)));
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('checkSkill: pass_rate below threshold fails', () => {
+  const dir = makeSkill();
+  writeFileSync(join(dir, 'evals', 'evals.json'), '{"skill_name":"x","evals":[{"id":1,"prompt":"p"}]}');
+  passingBenchmark(dir, { pass_rate: 0.5 });
+  const errs = checkSkill(dir, 0.9);
+  assert.ok(errs.some((e) => /0\.5.*0\.9|below threshold/.test(e)));
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('checkSkill: fresh + passing returns no errors', () => {
+  const dir = makeSkill();
+  writeFileSync(join(dir, 'evals', 'evals.json'), '{"skill_name":"x","evals":[{"id":1,"prompt":"p"}]}');
+  passingBenchmark(dir);
+  assert.deepEqual(checkSkill(dir, 0.9), []);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('checkSkill: per-skill threshold override is enforced', () => {
+  const dir = makeSkill();
+  writeFileSync(join(dir, 'evals', 'evals.json'), '{"skill_name":"x","threshold":0.95,"evals":[{"id":1,"prompt":"p"}]}');
+  passingBenchmark(dir, { pass_rate: 0.92, threshold: 0.95 });
+  const errs = checkSkill(dir, 0.9); // repo default 0.9, but skill demands 0.95
+  assert.ok(errs.some((e) => /0\.95|below threshold/.test(e)));
   rmSync(dir, { recursive: true, force: true });
 });

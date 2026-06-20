@@ -3,7 +3,7 @@
   "pass_rate": 1,
   "threshold": 0.9,
   "model": "claude-opus-4-8",
-  "source_hash": "sha256:6d04a47f3ffa0503d78bf4ded0bfe8e7687b19e8e308dd20edf098e021348aea",
+  "source_hash": "sha256:5255b6ff0afd39ea20006cfc628682603bf783273127d6b8a815f70132193f0c",
   "results": [
     {
       "eval_id": 1,

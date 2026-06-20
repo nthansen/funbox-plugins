@@ -55,4 +55,4 @@ requirements. -->
 - **Runtime:** no default behavior change — nothing activates until a user opts in via
   the installer. Only Claude-driven pushes are affected; raw-terminal pushes are out of
   scope.
-- **Dependencies:** none new (pure shell + `jq`, which the hook contract already uses).
+- **Dependencies:** none new (bash + `node` for JSON; `node` is present wherever Claude Code runs, so the hook avoids a `jq` dependency).

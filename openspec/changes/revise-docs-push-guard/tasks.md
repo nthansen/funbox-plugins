@@ -1,6 +1,6 @@
 ## 1. Hook script (the decision engine)
 
-- [ ] 1.1 Create `plugins/doc-sweep/hooks/revise-push-guard.sh` (LF, `set -euo pipefail`, `jq` for stdin) — read `tool_name`, `tool_input.command`, `cwd` from stdin
+- [ ] 1.1 Create `plugins/doc-sweep/hooks/revise-push-guard.sh` (LF, `set -uo pipefail`, **`node`** for stdin JSON — no `jq`) — read `tool_name`, `tool_input.command`, `cwd` from stdin
 - [ ] 1.2 Early-allow when `tool_name` != `Bash` or the command is not a `git push`
 - [ ] 1.3 Early-allow on bypass token in the command (`DOC_SWEEP_REVISE_SKIP=1` or `--no-verify`)
 - [ ] 1.4 Resolve repo from `cwd`; when repo-scope is "doc-sweep-only", allow if no `.claude/context/audience-rules.md` and no `CLAUDE.md`

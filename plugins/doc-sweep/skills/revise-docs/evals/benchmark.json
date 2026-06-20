@@ -2,7 +2,7 @@
   "skill": "revise-docs",
   "pass_rate": 1,
   "threshold": 0.9,
-  "model": "claude-opus-4-8",
+  "model": "claude-opus-4-8[1m]",
   "source_hash": "sha256:78fbc6e9fc3452160f54b4b1c70e7621c092b7b8e16c0909c1f074efd41759a5",
   "results": [
     {

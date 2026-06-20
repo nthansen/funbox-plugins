@@ -2,7 +2,7 @@
   "skill": "vscode-thinking-display",
   "pass_rate": 1,
   "threshold": 0.9,
-  "model": "claude-opus-4-8",
+  "model": "claude-opus-4-8[1m]",
   "source_hash": "sha256:b367bb856dd94874f1cbcf27175bd25f4a48f8f0037b31961ec828592a2a8ac0",
   "results": [
     {

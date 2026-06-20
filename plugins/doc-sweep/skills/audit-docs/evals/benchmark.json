@@ -2,7 +2,7 @@
   "skill": "audit-docs",
   "pass_rate": 1,
   "threshold": 0.9,
-  "model": "claude-opus-4-8",
+  "model": "claude-opus-4-8[1m]",
   "source_hash": "sha256:5255b6ff0afd39ea20006cfc628682603bf783273127d6b8a815f70132193f0c",
   "results": [
     {

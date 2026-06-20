@@ -2,7 +2,7 @@
   "skill": "init-audience-rules",
   "pass_rate": 1,
   "threshold": 0.9,
-  "model": "claude-opus-4-8",
+  "model": "claude-opus-4-8[1m]",
   "source_hash": "sha256:dd88600b515b90a274059b5546310171793e9e4eba9e8ab0555f4ba6c7281254",
   "results": [
     {

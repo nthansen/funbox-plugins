@@ -11,11 +11,11 @@ no(){ fail=$((fail+1)); printf 'FAIL %s\n' "$1"; }
 # run <name> <config-or-empty> <stdin-json> <expect: allow|deny>
 run(){
   local name="$1" cfg="$2" json="$3" expect="$4" out
-  out="$(printf '%s' "$json" | bash "$HOOK" $cfg 2>/dev/null)"
+  out="$(printf '%s' "$json" | bash "$HOOK" "$cfg" 2>/dev/null)"
   if printf '%s' "$out" | grep -q '"permissionDecision":"deny"'; then
-    [ "$expect" = deny ] && ok "$name" || no "$name (got deny, want allow)"
+    if [ "$expect" = deny ]; then ok "$name"; else no "$name (got deny, want allow)"; fi
   else
-    [ "$expect" = allow ] && ok "$name" || no "$name (got allow, want deny)"
+    if [ "$expect" = allow ]; then ok "$name"; else no "$name (got allow, want deny)"; fi
   fi
 }
 

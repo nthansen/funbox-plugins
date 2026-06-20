@@ -39,7 +39,7 @@ if [ -n "$cfg" ] && [ -f "$cfg" ]; then
   reposcope="$(node -e 'try{process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).repoScope||"all")}catch(e){process.stdout.write("all")}' "$cfg" 2>/dev/null || echo all)"
 fi
 
-[ -n "$cwd" ] && [ -d "$cwd" ] || allow
+if [ -z "$cwd" ] || [ ! -d "$cwd" ]; then allow; fi
 cd "$cwd" 2>/dev/null || allow
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || allow
 
@@ -63,7 +63,7 @@ if [ -f "$marker_file" ]; then
 fi
 if [ -z "$range" ]; then
   base="$(git merge-base HEAD origin/HEAD 2>/dev/null || git merge-base HEAD origin/main 2>/dev/null || echo)"
-  [ -n "$base" ] && range="${base}..HEAD" || allow   # can't determine → fail open
+  if [ -n "$base" ]; then range="${base}..HEAD"; else allow; fi   # can't determine → fail open
 fi
 
 changed="$(git diff --name-only "$range" 2>/dev/null)" || allow

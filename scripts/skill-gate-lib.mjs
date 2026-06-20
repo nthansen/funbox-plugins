@@ -115,6 +115,16 @@ export function checkSkill(skillDir, repoDefault) {
     errs.push(`${label}: benchmark stale (source_hash mismatch) — re-run /skill-gate`);
   }
 
+  if (!Array.isArray(bench.results) || bench.results.length === 0) {
+    errs.push(`${label}: benchmark.json has no results — re-run /skill-gate`);
+  } else {
+    const passed = bench.results.filter((r) => r.passed).length;
+    const derived = passed / bench.results.length;
+    if (typeof bench.pass_rate === 'number' && Math.abs(derived - bench.pass_rate) > 1e-6) {
+      errs.push(`${label}: benchmark pass_rate ${bench.pass_rate} inconsistent with results (${passed}/${bench.results.length})`);
+    }
+  }
+
   const threshold = typeof evals.threshold === 'number' ? evals.threshold : repoDefault;
   if (typeof bench.pass_rate !== 'number') {
     errs.push(`${label}: benchmark.json missing numeric pass_rate`);

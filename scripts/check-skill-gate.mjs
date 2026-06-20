@@ -24,6 +24,7 @@ for (const dir of skills) {
 
 if (skills.length === 0) {
   console.error('skill-gate: no skills found under plugins/*/skills/ — nothing to check');
+  process.exit(1);
 }
 
 if (errors.length) {

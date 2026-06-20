@@ -149,3 +149,25 @@ test('computeSourceHash normalizes line endings (CRLF == LF)', () => {
   rmSync(lf, { recursive: true, force: true });
   rmSync(crlf, { recursive: true, force: true });
 });
+
+test('checkSkill: empty results array fails', () => {
+  const dir = makeSkill();
+  writeFileSync(join(dir, 'evals', 'evals.json'), '{"skill_name":"x","evals":[{"id":1,"prompt":"p"}]}');
+  passingBenchmark(dir, { results: [] });
+  const errs = checkSkill(dir, 0.9);
+  assert.ok(errs.some((e) => /results/.test(e)), 'empty results must fail');
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('checkSkill: pass_rate inconsistent with results fails', () => {
+  const dir = makeSkill();
+  writeFileSync(join(dir, 'evals', 'evals.json'), '{"skill_name":"x","evals":[{"id":1,"prompt":"p"}]}');
+  // claims 1.0 but results show 1 of 2 passed
+  passingBenchmark(dir, { pass_rate: 1.0, results: [
+    { eval_id: 1, text: 'a', passed: true, evidence: 'x' },
+    { eval_id: 1, text: 'b', passed: false, evidence: 'y' },
+  ] });
+  const errs = checkSkill(dir, 0.9);
+  assert.ok(errs.some((e) => /inconsistent|does not match/.test(e)), 'pass_rate/results mismatch must fail');
+  rmSync(dir, { recursive: true, force: true });
+});

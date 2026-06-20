@@ -43,6 +43,11 @@ self-contained under `plugins/`.
   malformed YAML (e.g. an unquoted `key: value` colon-space inside a `description`) that fails
   at load time. Rely on `claude plugin validate` for frontmatter correctness, and keep `: ` and
   other YAML-significant punctuation out of unquoted frontmatter scalars.
+- `scripts/check-skill-gate.mjs` enforces a **per-skill functional eval pass-rate ≥
+  threshold** (default 0.9 in `.claude/skill-gate.json`) via a committed,
+  hash-verified `evals/benchmark.json`; (re)generate benchmarks with the
+  `/skill-gate` command (needs `skill-creator` installed). Run artifacts live in
+  gitignored `*-workspace/`. See CONTRIBUTING.md.
 
 ## Local testing
 

@@ -41,6 +41,15 @@ jobs:
       - name: Marketplace & plugin policy
         run: node scripts/validate-marketplace.mjs
 
+      - name: Skill-gate library unit tests
+        run: node --test scripts/skill-gate-lib.test.mjs
+
+      # Quality layer: every skill must have fresh eval artifacts meeting its
+      # threshold. Deterministic, no LLM, no Anthropic auth (artifacts are
+      # produced at author time by /skill-gate and committed).
+      - name: Skill quality gate
+        run: node scripts/check-skill-gate.mjs
+
       - name: Shell script syntax (bash -n)
         run: |
           set -euo pipefail

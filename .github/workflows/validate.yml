@@ -57,7 +57,7 @@ jobs:
       # onto work that doesn't use it.
       - name: OpenSpec structural validation
         run: |
-          npm install -g openspec
+          npm install -g @fission-ai/openspec@1.4.1
           openspec validate --strict --all
 
       - name: OpenSpec hygiene library unit tests

@@ -1,0 +1,16 @@
+{
+  "skill_name": "install-revise-hook",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Install the revise-docs push guard for this project: project-scoped settings, default doc-file set, guard only doc-sweep-enabled repos.",
+      "assertions": [
+        "Copies the hook script to a stable path under the project's .claude/hooks/",
+        "Writes a config JSON capturing the chosen docMode/repoScope (or equivalent)",
+        "Merges a PreToolUse matcher:Bash hook entry into the project settings.json referencing the copied hook + config, preserving any existing settings",
+        "Re-running the install does not duplicate the hook entry (idempotent)"
+      ],
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "skill": "install-revise-hook",
+  "pass_rate": 1,
+  "threshold": 0.9,
+  "model": "claude-opus-4-8[1m]",
+  "source_hash": "sha256:acbab08eed2389e861579667942a00ebaa7390b5af99098b2213f8806eda2e8c",
+  "results": [
+    {
+      "eval_id": 1,
+      "text": "Copies the hook script to a stable path under .claude/hooks/",
+      "passed": true,
+      "evidence": "proj/.claude/hooks/doc-sweep-revise-push.sh present"
+    },
+    {
+      "eval_id": 1,
+      "text": "Writes a config JSON capturing docMode/repoScope",
+      "passed": true,
+      "evidence": "doc-sweep-revise.json = {docMode:default,repoScope:doc-sweep-only}"
+    },
+    {
+      "eval_id": 1,
+      "text": "Merges a PreToolUse:Bash hook entry preserving existing settings",
+      "passed": true,
+      "evidence": "settings.json has both the new Bash entry and the original Write/echo-existing entry"
+    },
+    {
+      "eval_id": 1,
+      "text": "Idempotent re-run (no duplicate entry)",
+      "passed": true,
+      "evidence": "grep -c doc-sweep-revise-push.sh == 1 after second run"
+    }
+  ]
+}

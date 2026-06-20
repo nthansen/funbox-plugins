@@ -3,25 +3,43 @@
   "pass_rate": 1,
   "threshold": 0.9,
   "model": "claude-opus-4-8[1m]",
-  "source_hash": "sha256:78fbc6e9fc3452160f54b4b1c70e7621c092b7b8e16c0909c1f074efd41759a5",
+  "source_hash": "sha256:50f6716a82df77ef6b3df45d3586371c076bb311295cc951917baa88801ac90a",
   "results": [
     {
       "eval_id": 1,
       "text": "Reports which audience-rule layers are in effect (a 'Rules loaded:' line)",
       "passed": true,
-      "evidence": "output.log: 'Rules loaded: base + default overlay · tailor this repo with /init-audience-rules'"
+      "evidence": "iter-c1/output.log: 'Rules loaded: base + default overlay · tailor this repo with /init-audience-rules'"
     },
     {
       "eval_id": 1,
       "text": "Updates CLAUDE.md to capture the Claude-facing build-command change (make build)",
       "passed": true,
-      "evidence": "proj/CLAUDE.md contains 'make build'; stale 'bash build.sh' removed"
+      "evidence": "iter-c1 CLAUDE.md: bash build.sh -> make build (stale removed)"
     },
     {
       "eval_id": 1,
       "text": "Updates README.md (human-facing) with the corrected run command (make run), not CLAUDE.md",
       "passed": true,
-      "evidence": "proj/README.md contains 'make run'; absent from CLAUDE.md (audience separation)"
+      "evidence": "iter-c1 README.md has make run; CLAUDE.md does not"
+    },
+    {
+      "eval_id": 2,
+      "text": "README.md is updated with the new human-facing install command (pipx install foo)",
+      "passed": true,
+      "evidence": "iter-c2 README.md: pip install foo -> pipx install foo"
+    },
+    {
+      "eval_id": 2,
+      "text": "README.md is updated with the new human-facing run command (foo serve)",
+      "passed": true,
+      "evidence": "iter-c2 README.md: python app.py -> foo serve"
+    },
+    {
+      "eval_id": 2,
+      "text": "The human-facing changes are NOT written into CLAUDE.md; CLAUDE.md unrelated content left intact",
+      "passed": true,
+      "evidence": "iter-c2 CLAUDE.md: no pipx/foo serve; src/parse.py note intact"
     }
   ]
 }

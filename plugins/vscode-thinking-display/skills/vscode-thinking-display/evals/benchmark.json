@@ -3,37 +3,61 @@
   "pass_rate": 1,
   "threshold": 0.9,
   "model": "claude-opus-4-8[1m]",
-  "source_hash": "sha256:b367bb856dd94874f1cbcf27175bd25f4a48f8f0037b31961ec828592a2a8ac0",
+  "source_hash": "sha256:acc118a0271b7908ae0d16c6d4d346564f7037632c0e1fc8502de7ba773639d4",
   "results": [
     {
       "eval_id": 1,
       "text": "The --thinking-display chokepoint is rewritten so an omitted display defaults to \"summarized\"",
       "passed": true,
-      "evidence": "patched fixture contains B.push(\"--thinking-display\",l.display??\"summarized\")"
+      "evidence": "patched extension.js contains l.display??\"summarized\")"
     },
     {
       "eval_id": 1,
-      "text": "A pristine .js.orig backup is created for the modified bundle",
+      "text": "A pristine .js.orig backup is created for the modified display bundle",
       "passed": true,
-      "evidence": "extension.js.orig created on first patch"
+      "evidence": "extension.js.orig present after first display patch"
     },
     {
       "eval_id": 1,
-      "text": "Re-running the patch is idempotent (reports ALREADY PATCHED and makes no further change)",
+      "text": "Re-running the display patch is idempotent (reports ALREADY PATCHED, no further change)",
       "passed": true,
-      "evidence": "second patch run logged \"ALREADY PATCHED\", file unchanged"
+      "evidence": "2nd display patch logged ALREADY PATCHED"
     },
     {
       "eval_id": 2,
-      "text": "restore reverts the patched bundle byte-for-byte to the pristine original",
+      "text": "The expand-state useState(!1) is flipped to useState(!0) in the areThinkingBlocksExpanded webview bundle",
       "passed": true,
-      "evidence": "cmp -s patched-then-restored vs pristine: identical"
+      "evidence": "webview/index.js contains R.useState(!0)"
     },
     {
       "eval_id": 2,
-      "text": "the .js.orig backup is consumed/removed after restore",
+      "text": "A pristine .js.orig backup is created for the modified webview bundle",
       "passed": true,
-      "evidence": "extension.js.orig absent after restore display"
+      "evidence": "webview/index.js.orig present after first expand patch"
+    },
+    {
+      "eval_id": 2,
+      "text": "Re-running the expand patch is idempotent (reports ALREADY PATCHED, no further change)",
+      "passed": true,
+      "evidence": "2nd expand patch logged ALREADY PATCHED"
+    },
+    {
+      "eval_id": 3,
+      "text": "restore both reverts the display bundle byte-for-byte to pristine",
+      "passed": true,
+      "evidence": "cmp extension.js vs pristine-display: identical"
+    },
+    {
+      "eval_id": 3,
+      "text": "restore both reverts the expand/webview bundle byte-for-byte to pristine",
+      "passed": true,
+      "evidence": "cmp webview/index.js vs pristine-expand: identical"
+    },
+    {
+      "eval_id": 3,
+      "text": "all .js.orig backups are consumed/removed after restore both",
+      "passed": true,
+      "evidence": "no .orig files remain after restore both"
     }
   ]
 }

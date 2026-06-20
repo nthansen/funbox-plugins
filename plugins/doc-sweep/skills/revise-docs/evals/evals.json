@@ -10,6 +10,16 @@
         "Updates README.md (human-facing) with the corrected run command (make run), not CLAUDE.md"
       ],
       "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Heads up for our users: installation changed from `pip install foo` to `pipx install foo`, and you now start the app with `foo serve` instead of `python app.py`. Update the docs.",
+      "assertions": [
+        "README.md is updated with the new human-facing install command (pipx install foo)",
+        "README.md is updated with the new human-facing run command (foo serve)",
+        "The human-facing changes are NOT written into CLAUDE.md (no pipx/foo serve in CLAUDE.md); CLAUDE.md's unrelated content is left intact"
+      ],
+      "files": []
     }
   ]
 }

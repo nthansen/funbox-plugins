@@ -3,20 +3,31 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Enable Opus/Fable thinking summaries in my VS Code Claude Code extension by applying the patch.",
+      "prompt": "Enable Opus/Fable thinking summaries in my VS Code Claude Code extension by applying the display patch.",
       "assertions": [
         "The --thinking-display chokepoint is rewritten so an omitted display defaults to \"summarized\"",
-        "A pristine .js.orig backup is created for the modified bundle",
-        "Re-running the patch is idempotent (reports ALREADY PATCHED and makes no further change)"
+        "A pristine .js.orig backup is created for the modified display bundle",
+        "Re-running the display patch is idempotent (reports ALREADY PATCHED, no further change)"
       ],
       "files": []
     },
     {
       "id": 2,
-      "prompt": "Undo the thinking-display patch and restore my extension to its original state.",
+      "prompt": "Also make thinking blocks default to expanded each session (the optional additional patch).",
       "assertions": [
-        "restore reverts the patched bundle byte-for-byte to the pristine original",
-        "the .js.orig backup is consumed/removed after restore"
+        "The expand-state useState(!1) is flipped to useState(!0) in the areThinkingBlocksExpanded webview bundle",
+        "A pristine .js.orig backup is created for the modified webview bundle",
+        "Re-running the expand patch is idempotent (reports ALREADY PATCHED, no further change)"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Undo both patches and restore my extension to its original state.",
+      "assertions": [
+        "restore both reverts the display bundle byte-for-byte to pristine",
+        "restore both reverts the expand/webview bundle byte-for-byte to pristine",
+        "all .js.orig backups are consumed/removed after restore both"
       ],
       "files": []
     }

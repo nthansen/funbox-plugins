@@ -67,6 +67,11 @@ opt-in.
   it makes no doc changes.
 - **Rationale:** The retry push must pass; recording "reviewed to here" is the only way
   to distinguish reviewed-from-unreviewed history deterministically in a shell hook.
+  **Ownership:** only `revise-docs` knows a review happened and to which commit, so it
+  *produces* the marker as its own review-progress record; the guard is merely a
+  *consumer*. The `revise-docs` SKILL.md therefore records the marker generically and
+  does **not** name the guard/installer — the skill stays coherent and useful even when
+  the guard is never installed.
 - **Alternatives:** session-id state (doesn't express "stale"); timestamp (SHA is
   rebase-robust via fallback to `merge-base`).
 

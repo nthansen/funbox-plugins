@@ -51,10 +51,9 @@ block on it.
    - Ask for approval before applying any changes
    - Apply only the approved changes
 
-## After updating docs — advance the review marker
+## Record what you reviewed
 
-So the optional push-time guard (`/doc-sweep:install-revise-hook`) can tell reviewed
-history from unreviewed, record that this session reviewed docs up to the current
+As your final step, record how far documentation has now been reviewed — the current
 commit — **even if you made no doc changes** (that still means "reviewed to here,
 nothing needed"):
 
@@ -62,5 +61,6 @@ nothing needed"):
 git rev-parse HEAD > "$(git rev-parse --git-common-dir)/doc-sweep-revise-marker"
 ```
 
-Run this as the final step, after any doc commits. The marker lives inside the git
-directory (per-clone, not committed) and is inert if the guard is not installed.
+Run this after any doc commits. This per-clone marker (inside the git directory, not
+committed) is `revise-docs`'s own record of review progress; freshness tooling can
+read it.

@@ -1,0 +1,35 @@
+{
+  "skill_name": "revise-docs",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "This session we renamed the build entrypoint: the old `bash build.sh` is now `make build`, and the way humans run the app changed from `./run.sh` to `make run`. Update the docs to capture these learnings.",
+      "assertions": [
+        "Reports which audience-rule layers are in effect (a 'Rules loaded:' line)",
+        "Updates CLAUDE.md to capture the Claude-facing build-command change (make build)",
+        "Updates README.md (human-facing) with the corrected run command (make run), not CLAUDE.md"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Heads up for our users: installation changed from `pip install foo` to `pipx install foo`, and you now start the app with `foo serve` instead of `python app.py`. Update the docs.",
+      "assertions": [
+        "README.md is updated with the new human-facing install command (pipx install foo)",
+        "README.md is updated with the new human-facing run command (foo serve)",
+        "The human-facing changes are NOT written into CLAUDE.md (no pipx/foo serve in CLAUDE.md); CLAUDE.md's unrelated content is left intact"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Personal note from this session: on MY machine the deploy key lives at C:/Users/me/keys/deploy.pem and I deploy by running my personal ~/scripts/push.sh - capture this so I don't forget.",
+      "assertions": [
+        "Routes the machine-specific/personal content to CLAUDE.local.md (the gitignored .local twin), per the invariant base .local convention",
+        "Does NOT write the personal key path / personal script into the shared, committed CLAUDE.md",
+        "Reports which audience-rule layers are in effect (a 'Rules loaded:' line)"
+      ],
+      "files": []
+    }
+  ]
+}

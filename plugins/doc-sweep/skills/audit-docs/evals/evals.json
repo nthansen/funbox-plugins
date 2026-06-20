@@ -1,0 +1,25 @@
+{
+  "skill_name": "audit-docs",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Audit the CLAUDE.md files in this repo for quality, currency, and correct audience targeting.",
+      "assertions": [
+        "States which audience-rule layers are in effect (a 'Rules loaded:' line showing the base is loaded)",
+        "Flags human-facing content in CLAUDE.md as belonging in a README, grounding the violation in the invariant BASE file-boundary law (not merely the overlay)",
+        "Flags a machine-specific local path in CLAUDE.md as belonging in CLAUDE.local.md, per the base .local convention"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Audit the docs again. This CLAUDE.md mixes a legitimate Claude-facing build gotcha with a human-facing 'Getting started for users' section, and there is a proper README.md alongside it.",
+      "assertions": [
+        "States which audience-rule layers are in effect (a 'Rules loaded:' line)",
+        "Flags the human-facing 'Getting started for users' block in CLAUDE.md as belonging in the README (base human-facing boundary)",
+        "Does NOT recommend moving the legitimate Claude-facing build gotcha out of CLAUDE.md (no false positive on correctly-placed Claude content)"
+      ],
+      "files": []
+    }
+  ]
+}

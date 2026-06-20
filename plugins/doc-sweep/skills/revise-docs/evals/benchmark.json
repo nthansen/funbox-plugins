@@ -1,0 +1,63 @@
+{
+  "skill": "revise-docs",
+  "pass_rate": 1,
+  "threshold": 0.9,
+  "model": "claude-opus-4-8[1m]",
+  "source_hash": "sha256:ade155d5511346a25d7426c06eecd4a0016d21e77999a7b09e0636700f401f70",
+  "results": [
+    {
+      "eval_id": 1,
+      "text": "Reports which audience-rule layers are in effect (a 'Rules loaded:' line)",
+      "passed": true,
+      "evidence": "iter-c1/output.log: 'Rules loaded: base + default overlay …'"
+    },
+    {
+      "eval_id": 1,
+      "text": "Updates CLAUDE.md to capture the Claude-facing build-command change (make build)",
+      "passed": true,
+      "evidence": "iter-c1 CLAUDE.md: bash build.sh -> make build"
+    },
+    {
+      "eval_id": 1,
+      "text": "Updates README.md (human-facing) with make run, not CLAUDE.md",
+      "passed": true,
+      "evidence": "iter-c1 README.md has make run; CLAUDE.md does not"
+    },
+    {
+      "eval_id": 2,
+      "text": "README.md updated with new human-facing install command (pipx install foo)",
+      "passed": true,
+      "evidence": "iter-c2 README.md: pip install foo -> pipx install foo"
+    },
+    {
+      "eval_id": 2,
+      "text": "README.md updated with new human-facing run command (foo serve)",
+      "passed": true,
+      "evidence": "iter-c2 README.md: python app.py -> foo serve"
+    },
+    {
+      "eval_id": 2,
+      "text": "Human-facing changes NOT in CLAUDE.md; unrelated CLAUDE content intact",
+      "passed": true,
+      "evidence": "iter-c2 CLAUDE.md: no pipx/foo serve; src/parse.py note intact"
+    },
+    {
+      "eval_id": 3,
+      "text": "Routes machine-specific/personal content to CLAUDE.local.md per the invariant base .local convention",
+      "passed": true,
+      "evidence": "iter-c3 CLAUDE.local.md created containing deploy.pem + personal push.sh"
+    },
+    {
+      "eval_id": 3,
+      "text": "Does NOT write the personal key path / personal script into the shared committed CLAUDE.md",
+      "passed": true,
+      "evidence": "iter-c3 CLAUDE.md has no deploy.pem / push.sh"
+    },
+    {
+      "eval_id": 3,
+      "text": "Reports which audience-rule layers are in effect (a 'Rules loaded:' line)",
+      "passed": true,
+      "evidence": "iter-c3/output.log: 'Rules loaded: …'"
+    }
+  ]
+}

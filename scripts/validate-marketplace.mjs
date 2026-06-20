@@ -89,6 +89,7 @@ for (const [name, source] of listed) {
   const skillsDir = join(dir, 'skills');
   if (isDir(skillsDir)) {
     for (const skill of readdirSync(skillsDir)) {
+      if (/-workspace$/.test(skill)) continue; // gitignored skill-gate eval run artifacts, not skills
       const sdir = join(skillsDir, skill);
       if (!isDir(sdir)) continue;
       const skp = join(sdir, 'SKILL.md');

@@ -9,3 +9,6 @@ Thumbs.db
 # Personal/local notes — the ".local.md" convention stays out of git
 # (CLAUDE.local.md, audience-rules.local.md, etc.)
 *.local.md
+
+# skill-gate eval run artifacts (transcripts/outputs) — never committed
+*-workspace/

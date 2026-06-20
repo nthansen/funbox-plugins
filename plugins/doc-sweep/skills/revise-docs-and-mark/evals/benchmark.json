@@ -1,0 +1,21 @@
+{
+  "skill": "revise-docs-and-mark",
+  "pass_rate": 1,
+  "threshold": 0.9,
+  "model": "claude-opus-4-8[1m]",
+  "source_hash": "sha256:a8f1248133e9d56819744900d65c2f138938c7c6ee9f1f1721d1cb678b83c2fc",
+  "results": [
+    {
+      "eval_id": 1,
+      "text": "Invokes the revise-docs review (loads audience rules and reviews docs)",
+      "passed": true,
+      "evidence": "output.log: 'Rules loaded: base + funbox overlay'"
+    },
+    {
+      "eval_id": 1,
+      "text": "Writes the review marker equal to current HEAD",
+      "passed": true,
+      "evidence": "marker file == git rev-parse HEAD (exact match)"
+    }
+  ]
+}

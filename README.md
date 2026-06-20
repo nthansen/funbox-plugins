@@ -61,9 +61,9 @@ Adding a plugin = a new self-contained dir under `plugins/` plus one entry in
 ## Contributing
 
 New plugins are welcome. Every plugin meets an automated, auditable bar (structure, required
-docs, scoped `allowed-tools`, script safety, no secrets) enforced by CI on every PR — see
-[CONTRIBUTING.md](CONTRIBUTING.md). Run the same checks locally with
-`node scripts/validate-marketplace.mjs`.
+docs, scoped `allowed-tools`, script safety, no secrets, and a per-skill functional eval gate)
+enforced by CI on every PR — see [CONTRIBUTING.md](CONTRIBUTING.md). Run the same checks
+locally with `node scripts/validate-marketplace.mjs` and `node scripts/check-skill-gate.mjs`.
 
 ## License
 

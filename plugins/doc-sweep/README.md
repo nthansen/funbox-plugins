@@ -79,6 +79,60 @@ Installing doc-sweep **auto-installs `claude-md-management`** — as long as you
 `claude-plugins-official` marketplace added (most setups do). If you don't, Claude Code
 reports a `dependency-unsatisfied` error with the command to add it.
 
+## Push guard (opt-in)
+
+The **revise-docs push guard** is an optional `PreToolUse` hook that blocks a Claude-driven
+`git push` when documentation looks stale — specifically, when a non-doc file has changed
+since docs were last reviewed. It prompts Claude to run `/doc-sweep:revise-docs-and-mark`
+— a thin wrapper that runs the normal `revise-docs` review (unchanged) and then records the
+review snapshot the hook checks — commit any doc changes, and then push. The snapshot
+mechanism lives entirely in the guard; `revise-docs` itself is untouched.
+
+Nothing is installed automatically. To set it up, run:
+
+```text
+/doc-sweep:install-revise-hook
+```
+
+The installer is interactive and asks you four questions before writing anything:
+
+1. **Settings location** — user-global (`~/.claude/settings.json`, guards every repo where
+   Claude pushes) or project-local (`.claude/settings.json` in the current repo only).
+2. **Repo applicability** — all repos, or only repos that have `doc-sweep` set up (a
+   `CLAUDE.md` or `.claude/context/audience-rules.md`). User-global installs default to
+   doc-sweep-enabled repos only.
+3. **Doc-file set** — which files count as "documentation" and won't trigger the guard:
+   - `default`: `CLAUDE*.md`, `README*.md`, `CHANGELOG.md`, `docs/**`
+   - `with-skill`: same as default, plus `SKILL.md` files
+   - `minimal`: `CLAUDE.md` and `README.md` only
+4. **Bypass and uninstall** — the installer confirms the bypass token and how to remove
+   the guard.
+
+### Bypass
+
+To let a push through without reviewing docs, prefix the command with the bypass
+token or add `--no-verify`:
+
+```bash
+DOC_SWEEP_REVISE_SKIP=1 git push
+git push --no-verify
+```
+
+### Caveats
+
+- **Only Claude-driven pushes are gated.** A `git push` you run directly in a terminal
+  is not affected — Claude Code `PreToolUse` hooks only fire when Claude executes the
+  command.
+- **Needs `node` on PATH.** The hook uses `node` (not `jq`) to parse the event JSON.
+  If `node` is unavailable or anything errors internally, the hook fails open and allows
+  the push.
+
+### Uninstall
+
+Re-run `/doc-sweep:install-revise-hook` and choose the uninstall option. The installer
+removes the hook entry from `settings.json` and deletes the copied hook script and its
+config. All other settings are left untouched.
+
 ## Usage
 
 ```text

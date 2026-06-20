@@ -55,6 +55,10 @@ self-contained under `plugins/`.
   (`tasks.md` all `[x]` but still under `openspec/changes/`). Both **self-scope** — no
   specs / no active changes ⇒ no findings — so OpenSpec is never forced onto a PR that
   doesn't use it (bug fixes / docs / config tweaks stay direct-PR per the routing table).
+- The OpenSpec CLI is the npm package **`@fission-ai/openspec`** (CI pins
+  `@fission-ai/openspec@1.4.1`). The bare name `openspec` is an unrelated squatter that
+  installs cleanly but ships **no `openspec` binary** (`command not found`) — always use
+  the scoped name to install/run the CLI.
 
 ## Local testing
 

@@ -1,0 +1,14 @@
+{
+  "skill_name": "revise-docs-and-mark",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "A config file changed this session. Review the docs and record the review snapshot before I push.",
+      "assertions": [
+        "Invokes the revise-docs review (loads audience rules and reviews docs) rather than only writing the marker",
+        "Writes the review marker at $(git rev-parse --git-common-dir)/doc-sweep-revise-marker equal to the current HEAD commit"
+      ],
+      "files": []
+    }
+  ]
+}

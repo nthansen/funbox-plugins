@@ -1,0 +1,51 @@
+{
+  "skill": "install-revise-hook",
+  "pass_rate": 1,
+  "threshold": 0.9,
+  "model": "claude-opus-4-8[1m]",
+  "source_hash": "sha256:53c4574c7f5dee8f800810704473399712083a3aca07ad272c36766e876f67b0",
+  "results": [
+    {
+      "eval_id": 1,
+      "text": "Copies the hook script to a stable path under .claude/hooks/",
+      "passed": true,
+      "evidence": "proj/.claude/hooks/doc-sweep-revise-push.sh present"
+    },
+    {
+      "eval_id": 1,
+      "text": "Writes a config JSON capturing docMode/repoScope",
+      "passed": true,
+      "evidence": "doc-sweep-revise.json = {docMode:default,repoScope:doc-sweep-only}"
+    },
+    {
+      "eval_id": 1,
+      "text": "Merges a PreToolUse:Bash entry preserving existing settings",
+      "passed": true,
+      "evidence": "settings.json has new Bash entry + original Write/echo-existing"
+    },
+    {
+      "eval_id": 1,
+      "text": "Idempotent re-run (no duplicate)",
+      "passed": true,
+      "evidence": "grep -c hook path == 1 after 2nd install"
+    },
+    {
+      "eval_id": 2,
+      "text": "Removes the push-guard PreToolUse entry on uninstall",
+      "passed": true,
+      "evidence": "grep -c doc-sweep-revise-push.sh settings.json == 0 after uninstall"
+    },
+    {
+      "eval_id": 2,
+      "text": "Deletes the copied hook script and config JSON",
+      "passed": true,
+      "evidence": "hook + config absent after uninstall"
+    },
+    {
+      "eval_id": 2,
+      "text": "Leaves unrelated settings untouched",
+      "passed": true,
+      "evidence": "Write/echo-existing entry retained after uninstall"
+    }
+  ]
+}

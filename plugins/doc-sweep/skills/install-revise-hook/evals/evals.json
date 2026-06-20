@@ -11,6 +11,16 @@
         "Re-running the install does not duplicate the hook entry (idempotent)"
       ],
       "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Uninstall the revise-docs push guard from this project.",
+      "assertions": [
+        "Removes the push-guard PreToolUse entry (the one referencing doc-sweep-revise-push.sh) from settings.json",
+        "Deletes the copied hook script and the config JSON",
+        "Leaves unrelated settings (other hooks/keys) untouched"
+      ],
+      "files": []
     }
   ]
 }

@@ -3,7 +3,7 @@
   "pass_rate": 1,
   "threshold": 0.9,
   "model": "claude-opus-4-8[1m]",
-  "source_hash": "sha256:acbab08eed2389e861579667942a00ebaa7390b5af99098b2213f8806eda2e8c",
+  "source_hash": "sha256:53c4574c7f5dee8f800810704473399712083a3aca07ad272c36766e876f67b0",
   "results": [
     {
       "eval_id": 1,
@@ -19,15 +19,33 @@
     },
     {
       "eval_id": 1,
-      "text": "Merges a PreToolUse:Bash hook entry preserving existing settings",
+      "text": "Merges a PreToolUse:Bash entry preserving existing settings",
       "passed": true,
-      "evidence": "settings.json has both the new Bash entry and the original Write/echo-existing entry"
+      "evidence": "settings.json has new Bash entry + original Write/echo-existing"
     },
     {
       "eval_id": 1,
-      "text": "Idempotent re-run (no duplicate entry)",
+      "text": "Idempotent re-run (no duplicate)",
       "passed": true,
-      "evidence": "grep -c doc-sweep-revise-push.sh == 1 after second run"
+      "evidence": "grep -c hook path == 1 after 2nd install"
+    },
+    {
+      "eval_id": 2,
+      "text": "Removes the push-guard PreToolUse entry on uninstall",
+      "passed": true,
+      "evidence": "grep -c doc-sweep-revise-push.sh settings.json == 0 after uninstall"
+    },
+    {
+      "eval_id": 2,
+      "text": "Deletes the copied hook script and config JSON",
+      "passed": true,
+      "evidence": "hook + config absent after uninstall"
+    },
+    {
+      "eval_id": 2,
+      "text": "Leaves unrelated settings untouched",
+      "passed": true,
+      "evidence": "Write/echo-existing entry retained after uninstall"
     }
   ]
 }

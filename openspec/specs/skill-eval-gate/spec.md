@@ -1,7 +1,12 @@
 # skill-eval-gate Specification
 
 ## Purpose
-TBD - created by archiving change skill-quality-gate. Update Purpose after archive.
+Enforce a functional quality bar for every skill in the funbox marketplace: each
+skill carries committed eval inputs and a hash-verified benchmark whose pass-rate
+meets a threshold, generated author-time via `/skill-gate` (reusing skill-creator's
+engine) and verified deterministically in CI. This ensures a skill's structural
+validity is backed by evidence that it actually does its job, without running any
+LLM in CI.
 ## Requirements
 ### Requirement: Per-skill committed eval artifacts
 

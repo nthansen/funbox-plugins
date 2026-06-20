@@ -50,6 +50,22 @@ jobs:
       - name: Skill quality gate
         run: node scripts/check-skill-gate.mjs
 
+      # OpenSpec structural validity (the tool enforcing its own rules) + funbox
+      # hygiene gaps validate misses: TBD/placeholder Purposes in living specs and
+      # a fully-implemented change left un-archived. All self-scope — a PR with no
+      # specs or active changes produces no findings, so OpenSpec is never forced
+      # onto work that doesn't use it.
+      - name: OpenSpec structural validation
+        run: |
+          npm install -g @fission-ai/openspec@1.4.1
+          openspec validate --strict --all
+
+      - name: OpenSpec hygiene library unit tests
+        run: node --test scripts/openspec-hygiene-lib.test.mjs
+
+      - name: OpenSpec hygiene gate
+        run: node scripts/check-openspec-hygiene.mjs
+
       - name: Shell script syntax (bash -n)
         run: |
           set -euo pipefail

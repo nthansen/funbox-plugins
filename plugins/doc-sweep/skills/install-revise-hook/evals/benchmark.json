@@ -1,51 +1,111 @@
 {
   "skill": "install-revise-hook",
-  "pass_rate": 1,
+  "pass_rate": 0.9411764705882353,
   "threshold": 0.9,
-  "model": "claude-opus-4-8[1m]",
-  "source_hash": "sha256:53c4574c7f5dee8f800810704473399712083a3aca07ad272c36766e876f67b0",
+  "model": "claude-sonnet-4-6",
+  "source_hash": "sha256:a90ae56e2ff5ea8e6e20066d9d4615fe146405b63d5d4c0b55e8b2c11235f283",
   "results": [
     {
       "eval_id": 1,
-      "text": "Copies the hook script to a stable path under .claude/hooks/",
+      "text": "Copies the hook script to a stable path under the project's .claude/hooks/",
       "passed": true,
-      "evidence": "proj/.claude/hooks/doc-sweep-revise-push.sh present"
+      "evidence": "eval-1 outputs: .claude/hooks/doc-sweep-revise-push.sh present (-rwxr-xr-x), real bash script"
     },
     {
       "eval_id": 1,
-      "text": "Writes a config JSON capturing docMode/repoScope",
+      "text": "Writes a config JSON capturing docMode/repoScope AND trigger:\"commit\" AND an excludeDirs array",
       "passed": true,
-      "evidence": "doc-sweep-revise.json = {docMode:default,repoScope:doc-sweep-only}"
+      "evidence": "doc-sweep-revise.json = {docMode:default, repoScope:doc-sweep-only, trigger:commit, excludeDirs:[]}"
     },
     {
       "eval_id": 1,
-      "text": "Merges a PreToolUse:Bash entry preserving existing settings",
+      "text": "Merges a PreToolUse matcher:Bash hook entry into the project settings.json referencing the copied hook + config, preserving any existing settings",
       "passed": true,
-      "evidence": "settings.json has new Bash entry + original Write/echo-existing"
+      "evidence": "settings.json has a PreToolUse/Bash matcher whose command references the hook + config paths"
     },
     {
       "eval_id": 1,
-      "text": "Idempotent re-run (no duplicate)",
+      "text": "Offers to seed the review marker on this fresh install (seed-now / review-now / leave) rather than silently leaving it unset",
       "passed": true,
-      "evidence": "grep -c hook path == 1 after 2nd install"
+      "evidence": "transcript Step 7 offers seed/review/leave and seeds the marker; doc-sweep-revise-marker output contains a HEAD SHA"
+    },
+    {
+      "eval_id": 1,
+      "text": "Prints a structured summary listing the settings/hook/config paths, the trigger, marker state, bypass tokens, and how to edit/uninstall",
+      "passed": true,
+      "evidence": "transcript Step 8 summary lists settings/hook/config paths, Trigger=commit, marker state, bypass tokens, edit/uninstall line"
+    },
+    {
+      "eval_id": 1,
+      "text": "Re-running the install does not duplicate the hook entry (idempotent)",
+      "passed": false,
+      "evidence": "Executor stated idempotency would apply but did not actually perform a second run; burden of proof not met"
     },
     {
       "eval_id": 2,
-      "text": "Removes the push-guard PreToolUse entry on uninstall",
+      "text": "Removes the guard PreToolUse entry (the one referencing doc-sweep-revise-push.sh) from settings.json",
       "passed": true,
-      "evidence": "grep -c doc-sweep-revise-push.sh settings.json == 0 after uninstall"
+      "evidence": "settings-after-uninstall.json no longer contains the Bash/doc-sweep-revise-push.sh PreToolUse entry"
     },
     {
       "eval_id": 2,
-      "text": "Deletes the copied hook script and config JSON",
+      "text": "Deletes the copied hook script and the config JSON",
       "passed": true,
-      "evidence": "hook + config absent after uninstall"
+      "evidence": "deleted-files.txt lists hook script + config JSON deleted; no hook file in eval-2 outputs"
     },
     {
       "eval_id": 2,
-      "text": "Leaves unrelated settings untouched",
+      "text": "Leaves unrelated settings (other hooks/keys) untouched",
       "passed": true,
-      "evidence": "Write/echo-existing entry retained after uninstall"
+      "evidence": "settings-after-uninstall.json retains theme:dark and the unrelated PreToolUse/Write matcher"
+    },
+    {
+      "eval_id": 2,
+      "text": "Leaves the per-clone review marker file in place (does not delete it)",
+      "passed": true,
+      "evidence": "doc-sweep-revise-marker still present after uninstall; deleted-files.txt marks it preserved"
+    },
+    {
+      "eval_id": 3,
+      "text": "Detects the existing install and offers Reconfigure / Uninstall / Cancel rather than doing a blind fresh install",
+      "passed": true,
+      "evidence": "transcript Step 1 detects doc-sweep-revise-push.sh and offers Reconfigure/Uninstall/Cancel"
+    },
+    {
+      "eval_id": 3,
+      "text": "On Reconfigure, rewrites the config JSON with the new trigger while preserving the other choices",
+      "passed": true,
+      "evidence": "doc-sweep-revise.json trigger changed to commit; docMode/repoScope/excludeDirs unchanged"
+    },
+    {
+      "eval_id": 3,
+      "text": "Leaves the review marker file untouched during reconfigure (does not re-seed it)",
+      "passed": true,
+      "evidence": "doc-sweep-revise-marker SHA unchanged from the pre-existing install"
+    },
+    {
+      "eval_id": 3,
+      "text": "Updates the settings.json matcher only if the hook path or settings location changed",
+      "passed": true,
+      "evidence": "path + settings location unchanged → no matcher update; settings.json command string unmodified"
+    },
+    {
+      "eval_id": 4,
+      "text": "Scans for likely-vendored directories (submodules, non-root package manifests, known vendor names) and presents candidates for confirmation",
+      "passed": true,
+      "evidence": "transcript Step 4 shows all three signals (.gitmodules, non-root package.json, known names) producing deduped candidates for confirmation"
+    },
+    {
+      "eval_id": 4,
+      "text": "Persists the confirmed excludeDirs list into .claude/context/audience-rules.md",
+      "passed": true,
+      "evidence": "audience-rules.md output contains the excludeDirs YAML list with the four confirmed dirs"
+    },
+    {
+      "eval_id": 4,
+      "text": "Mirrors the same excludeDirs into the hook config JSON written next to the hook",
+      "passed": true,
+      "evidence": "doc-sweep-revise.json excludeDirs matches the four entries in audience-rules.md"
     }
   ]
 }

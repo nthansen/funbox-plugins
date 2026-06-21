@@ -2,62 +2,92 @@
   "skill": "revise-docs",
   "pass_rate": 1,
   "threshold": 0.9,
-  "model": "claude-opus-4-8[1m]",
-  "source_hash": "sha256:ade155d5511346a25d7426c06eecd4a0016d21e77999a7b09e0636700f401f70",
+  "model": "claude-sonnet-4-6",
+  "source_hash": "sha256:c4e8cb9fc262c463b5553b754cdef93f38c86d0e31cf2c81f7c7ba41d658474a",
   "results": [
     {
       "eval_id": 1,
       "text": "Reports which audience-rule layers are in effect (a 'Rules loaded:' line)",
       "passed": true,
-      "evidence": "iter-c1/output.log: 'Rules loaded: base + default overlay …'"
+      "evidence": "transcript: 'Rules loaded: base + default overlay · tailor this repo with /init-audience-rules'"
     },
     {
       "eval_id": 1,
       "text": "Updates CLAUDE.md to capture the Claude-facing build-command change (make build)",
       "passed": true,
-      "evidence": "iter-c1 CLAUDE.md: bash build.sh -> make build"
+      "evidence": "outputs/CLAUDE.md Build section: `make build` (was bash build.sh)"
     },
     {
       "eval_id": 1,
-      "text": "Updates README.md (human-facing) with make run, not CLAUDE.md",
+      "text": "Updates README.md (human-facing) with the corrected run command (make run), not CLAUDE.md",
       "passed": true,
-      "evidence": "iter-c1 README.md has make run; CLAUDE.md does not"
+      "evidence": "outputs/README.md: `make run`; CLAUDE.md has no `make run`"
     },
     {
       "eval_id": 2,
-      "text": "README.md updated with new human-facing install command (pipx install foo)",
+      "text": "README.md is updated with the new human-facing install command (pipx install foo)",
       "passed": true,
-      "evidence": "iter-c2 README.md: pip install foo -> pipx install foo"
+      "evidence": "outputs/README.md Installation: `pipx install foo`"
     },
     {
       "eval_id": 2,
-      "text": "README.md updated with new human-facing run command (foo serve)",
+      "text": "README.md is updated with the new human-facing run command (foo serve)",
       "passed": true,
-      "evidence": "iter-c2 README.md: python app.py -> foo serve"
+      "evidence": "outputs/README.md Running: `foo serve`"
     },
     {
       "eval_id": 2,
-      "text": "Human-facing changes NOT in CLAUDE.md; unrelated CLAUDE content intact",
+      "text": "The human-facing changes are NOT written into CLAUDE.md (no pipx/foo serve in CLAUDE.md); CLAUDE.md's unrelated content is left intact",
       "passed": true,
-      "evidence": "iter-c2 CLAUDE.md: no pipx/foo serve; src/parse.py note intact"
+      "evidence": "outputs/CLAUDE.md retains only original Architecture/Testing; no pipx or foo serve"
     },
     {
       "eval_id": 3,
-      "text": "Routes machine-specific/personal content to CLAUDE.local.md per the invariant base .local convention",
+      "text": "Routes the machine-specific/personal content to CLAUDE.local.md (the gitignored .local twin), per the invariant base .local convention",
       "passed": true,
-      "evidence": "iter-c3 CLAUDE.local.md created containing deploy.pem + personal push.sh"
+      "evidence": "outputs/CLAUDE.local.md holds deploy.pem path + personal push.sh; *.local.md gitignored"
     },
     {
       "eval_id": 3,
-      "text": "Does NOT write the personal key path / personal script into the shared committed CLAUDE.md",
+      "text": "Does NOT write the personal key path / personal script into the shared, committed CLAUDE.md",
       "passed": true,
-      "evidence": "iter-c3 CLAUDE.md has no deploy.pem / push.sh"
+      "evidence": "outputs/CLAUDE.md has no key path/personal script"
     },
     {
       "eval_id": 3,
       "text": "Reports which audience-rule layers are in effect (a 'Rules loaded:' line)",
       "passed": true,
-      "evidence": "iter-c3/output.log: 'Rules loaded: …'"
+      "evidence": "transcript: 'Rules loaded: base + default overlay …'"
+    },
+    {
+      "eval_id": 4,
+      "text": "Discovers documentation from tracked files (e.g. via git ls-files) rather than a blind **/README.md glob",
+      "passed": true,
+      "evidence": "transcript shows git ls-files discovery; outputs/git-ls-files.txt lists tracked docs"
+    },
+    {
+      "eval_id": 4,
+      "text": "Updates the first-party root README.md with the new run command (make run)",
+      "passed": true,
+      "evidence": "outputs/README.md Running: `make run` (was ./run.sh)"
+    },
+    {
+      "eval_id": 4,
+      "text": "Does NOT edit the vendored vendor/acme/README.md (it is excluded as an external/vendored path)",
+      "passed": true,
+      "evidence": "outputs/vendor-acme-README.md unchanged ('Do not edit.'); excludeDirs:[vendor] applied"
+    },
+    {
+      "eval_id": 5,
+      "text": "Still discovers and considers the gitignored local twin CLAUDE.local.md (a *.local.md doc) despite it being untracked",
+      "passed": true,
+      "evidence": "outputs/CLAUDE.local.md updated with the quirk; included as the *.local.md named exception"
+    },
+    {
+      "eval_id": 5,
+      "text": "Does not blanket-include other untracked files (e.g. files under node_modules/ or dist/ are not treated as repo docs)",
+      "passed": true,
+      "evidence": "outputs/node_modules-foo-README.md untouched; node_modules not tracked, excluded from discovery"
     }
   ]
 }

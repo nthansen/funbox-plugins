@@ -30,6 +30,25 @@
         "Reports which audience-rule layers are in effect (a 'Rules loaded:' line)"
       ],
       "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We added a vendored dependency this session under vendor/acme/ (including vendor/acme/README.md), and we changed our own root README.md run command from `./run.sh` to `make run`. Update the docs.",
+      "assertions": [
+        "Discovers documentation from tracked files (e.g. via git ls-files) rather than a blind **/README.md glob",
+        "Updates the first-party root README.md with the new run command (make run)",
+        "Does NOT edit the vendored vendor/acme/README.md (it is excluded as an external/vendored path)"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "There is a CLAUDE.local.md in this repo (gitignored). This session I discovered a personal-only quirk worth recording there. Update the docs.",
+      "assertions": [
+        "Still discovers and considers the gitignored local twin CLAUDE.local.md (a *.local.md doc) despite it being untracked",
+        "Does not blanket-include other untracked files (e.g. files under node_modules/ or dist/ are not treated as repo docs)"
+      ],
+      "files": []
     }
   ]
 }

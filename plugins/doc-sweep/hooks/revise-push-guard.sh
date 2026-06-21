@@ -26,18 +26,24 @@ tool="$(getfield tool_name)" || allow
 cmd="$(getfield tool_input.command)" || allow
 cwd="$(getfield cwd)" || allow
 
-# Only gate git push (git, optional global flags, then the push subcommand).
-printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+-[^[:space:]]*([[:space:]]+[^-[:space:]][^[:space:]]*)?)*[[:space:]]+push([[:space:]]|$)' || allow
-# Explicit bypass.
-printf '%s' "$cmd" | grep -Eq 'DOC_SWEEP_REVISE_SKIP=1|--no-verify' && allow
-
-# Config (optional) via node.
-docmode="default"; reposcope="all"
+# Config (optional) via node — trigger and excludeDirs.
+docmode="default"; reposcope="all"; trigger="push"; excludes=""
 cfg="${1:-}"
 if [ -n "$cfg" ] && [ -f "$cfg" ]; then
   docmode="$(node -e 'try{process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).docMode||"default")}catch(e){process.stdout.write("default")}' "$cfg" 2>/dev/null || echo default)"
   reposcope="$(node -e 'try{process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).repoScope||"all")}catch(e){process.stdout.write("all")}' "$cfg" 2>/dev/null || echo all)"
+  trigger="$(node -e 'try{process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).trigger||"push")}catch(e){process.stdout.write("push")}' "$cfg" 2>/dev/null || echo push)"
+  excludes="$(node -e 'try{const a=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).excludeDirs;process.stdout.write(Array.isArray(a)?a.join("\n"):"")}catch(e){}' "$cfg" 2>/dev/null || echo)"
 fi
+
+# Only gate the configured trigger subcommand (push by default).
+case "$trigger" in
+  commit) sub='commit' ;;
+  *)      sub='push' ;;
+esac
+printf '%s' "$cmd" | grep -Eq "(^|[^[:alnum:]_])git([[:space:]]+-[^[:space:]]*([[:space:]]+[^-[:space:]][^[:space:]]*)?)*[[:space:]]+${sub}([[:space:]]|$)" || allow
+# Explicit bypass.
+printf '%s' "$cmd" | grep -Eq 'DOC_SWEEP_REVISE_SKIP=1|--no-verify' && allow
 
 if [ -z "$cwd" ] || [ ! -d "$cwd" ]; then allow; fi
 cd "$cwd" 2>/dev/null || allow
@@ -85,6 +91,16 @@ is_doc(){ # $1 = path; doc per $docmode
 nondoc=""
 while IFS= read -r f; do
   [ -n "$f" ] || continue
+  skip=0
+  if [ -n "$excludes" ]; then
+    while IFS= read -r ex; do
+      [ -n "$ex" ] || continue
+      case "$f" in "$ex"/*|"$ex") skip=1; break;; esac
+    done <<EX
+$excludes
+EX
+  fi
+  [ "$skip" = 1 ] && continue
   # shellcheck disable=SC2086
   is_doc "$f" || nondoc="$nondoc $f"
 done <<EOF
@@ -92,7 +108,8 @@ $changed
 EOF
 
 if [ -n "$nondoc" ]; then
+  verb="push"; [ "$trigger" = "commit" ] && verb="commit"
   # shellcheck disable=SC2086
-  emit_deny "Docs may be stale — non-doc file(s) changed since docs were last reviewed:${nondoc}. Run /doc-sweep:revise-docs-and-mark to review docs and record the review snapshot, commit any changes, then push again. (Add DOC_SWEEP_REVISE_SKIP=1 before the command, or --no-verify, to bypass.)"
+  emit_deny "Docs may be stale — non-doc file(s) changed since docs were last reviewed:${nondoc}. Run /doc-sweep:revise-docs-and-mark to review docs and record the review snapshot, commit any changes, then ${verb} again. (Add DOC_SWEEP_REVISE_SKIP=1 before the command, or --no-verify, to bypass.)"
 fi
 allow

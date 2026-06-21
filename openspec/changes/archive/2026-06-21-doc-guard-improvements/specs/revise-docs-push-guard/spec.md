@@ -1,13 +1,10 @@
-# revise-docs-push-guard Specification
+## RENAMED Requirements
 
-## Purpose
-Give doc-sweep an opt-in, Claude-aware guard that blocks a `git push` when documentation
-looks stale — a non-doc file changed since docs were last reviewed — and prompts running
-the review-and-snapshot wrapper (`revise-docs-and-mark`) first, so doc updates land in the
-same push. The snapshot mechanism is owned entirely by the guard; the base `revise-docs`
-skill is untouched. The hook is deterministic, fails open, and parses JSON with `node`
-(no `jq`); only Claude-driven pushes are gated.
-## Requirements
+- FROM: `### Requirement: Push-time staleness gate`
+- TO: `### Requirement: Configurable staleness gate`
+
+## MODIFIED Requirements
+
 ### Requirement: Opt-in interactive installer
 
 doc-sweep SHALL provide a manual, model-non-invocable skill that installs the guard only
@@ -53,69 +50,6 @@ Reconfigure SHALL re-ask the choices pre-filled with the current config, rewrite
 - **WHEN** the user chooses uninstall
 - **THEN** the `PreToolUse` entry, the copied hook script, and the config are removed, leaving other settings and the marker file intact
 
-### Requirement: Snapshot owned by a guard wrapper, not the base skill
-
-The review snapshot SHALL be recorded by a guard-owned wrapper skill, NOT by `revise-docs`.
-The wrapper SHALL invoke the unchanged `doc-sweep:revise-docs` skill, then make **exactly one
-commit** of all resulting documentation changes (CLAUDE.md and README updates together),
-and then write the current `HEAD` commit to a per-clone marker resolved from the repository's
-common git directory — including when no documentation changes were needed (in which case no
-commit is made but the marker is still advanced). `revise-docs` and the delegated
-`claude-md-management:revise-claude-md` command SHALL remain edit-only and SHALL NOT commit;
-`revise-docs` SHALL NOT reference the guard. This marks history as reviewed up to that commit
-so the gate can distinguish reviewed from unreviewed work and a retried command is allowed.
-
-#### Scenario: Base skill is untouched
-
-- **WHEN** the change is implemented
-- **THEN** `revise-docs` contains no marker/snapshot or commit step and no reference to the guard or installer
-
-#### Scenario: One commit per review
-
-- **WHEN** the wrapper runs and `revise-docs` updates multiple documentation files
-- **THEN** the wrapper records all of them in a single commit, then advances the marker to HEAD
-
-#### Scenario: Wrapper advances the snapshot with no doc changes
-
-- **WHEN** the wrapper runs and `revise-docs` determines no documentation needs updating
-- **THEN** the wrapper makes no commit but still records the snapshot at the current HEAD
-
-#### Scenario: Retry after the wrapper is allowed
-
-- **WHEN** a command was denied, the user runs the wrapper (which reviews docs, commits once, and records the snapshot), and retries
-- **THEN** the gate finds no non-doc files after the marker and allows the command
-
-### Requirement: Self-skip, bypass, and fail-open
-
-The hook SHALL NOT obstruct work outside its intended scope. When configured for
-doc-sweep-enabled repos only, it SHALL allow immediately in a repository lacking
-doc-sweep markers (e.g. no `.claude/context/audience-rules.md` or `CLAUDE.md`). It
-SHALL allow when the push command carries an explicit bypass token
-(`DOC_SWEEP_REVISE_SKIP=1` or `--no-verify`). On any internal error it SHALL fail open
-(allow the push) rather than block.
-
-#### Scenario: Unrelated repo is skipped
-- **WHEN** repo applicability is "doc-sweep-enabled only" and the current repo has no doc-sweep markers
-- **THEN** the hook allows the push without evaluating staleness
-
-#### Scenario: Explicit bypass
-- **WHEN** the push command contains `DOC_SWEEP_REVISE_SKIP=1` or `--no-verify`
-- **THEN** the hook allows the push
-
-#### Scenario: Internal error fails open
-- **WHEN** the hook encounters an internal error (e.g. cannot resolve the marker or run git)
-- **THEN** it allows the push and emits a non-blocking note rather than denying
-
-### Requirement: No default activation
-
-The guard SHALL NOT change any behavior until a user explicitly installs it. Merely
-installing the doc-sweep plugin SHALL NOT register the hook, and the `revise-docs`
-marker write SHALL be inert (harmless) when no hook is installed.
-
-#### Scenario: Plugin install alone is inert
-- **WHEN** doc-sweep is installed but the installer skill has not been run
-- **THEN** no `PreToolUse` hook is registered and `git push` is never gated
-
 ### Requirement: Configurable staleness gate
 
 The installed hook SHALL run on `PreToolUse` for `Bash` calls and SHALL gate the git
@@ -149,3 +83,34 @@ command that is not the configured trigger SHALL be allowed without inspection.
 - **WHEN** the Bash command is not the configured trigger subcommand
 - **THEN** the hook allows the call without inspection
 
+### Requirement: Snapshot owned by a guard wrapper, not the base skill
+
+The review snapshot SHALL be recorded by a guard-owned wrapper skill, NOT by `revise-docs`.
+The wrapper SHALL invoke the unchanged `doc-sweep:revise-docs` skill, then make **exactly one
+commit** of all resulting documentation changes (CLAUDE.md and README updates together),
+and then write the current `HEAD` commit to a per-clone marker resolved from the repository's
+common git directory — including when no documentation changes were needed (in which case no
+commit is made but the marker is still advanced). `revise-docs` and the delegated
+`claude-md-management:revise-claude-md` command SHALL remain edit-only and SHALL NOT commit;
+`revise-docs` SHALL NOT reference the guard. This marks history as reviewed up to that commit
+so the gate can distinguish reviewed from unreviewed work and a retried command is allowed.
+
+#### Scenario: Base skill is untouched
+
+- **WHEN** the change is implemented
+- **THEN** `revise-docs` contains no marker/snapshot or commit step and no reference to the guard or installer
+
+#### Scenario: One commit per review
+
+- **WHEN** the wrapper runs and `revise-docs` updates multiple documentation files
+- **THEN** the wrapper records all of them in a single commit, then advances the marker to HEAD
+
+#### Scenario: Wrapper advances the snapshot with no doc changes
+
+- **WHEN** the wrapper runs and `revise-docs` determines no documentation needs updating
+- **THEN** the wrapper makes no commit but still records the snapshot at the current HEAD
+
+#### Scenario: Retry after the wrapper is allowed
+
+- **WHEN** a command was denied, the user runs the wrapper (which reviews docs, commits once, and records the snapshot), and retries
+- **THEN** the gate finds no non-doc files after the marker and allows the command

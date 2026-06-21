@@ -18,6 +18,13 @@ self-contained under `plugins/`.
 - `doc-sweep`'s `init-audience-rules` skill is **`disable-model-invocation: true` on purpose**
   (manual-only `/`-command): auto-invocation over-triggers on ordinary CLAUDE.md-vs-README doc
   talk. Don't remove it — `revise-docs`/`audit-docs` stay model-invocable.
+- This repo also dogfoods doc-sweep's **revise-docs push guard** (project scope): a `PreToolUse`
+  Bash matcher in `.claude/settings.json` runs `.claude/hooks/doc-sweep-revise-push.sh` (config
+  `doc-sweep-revise.json`: `trigger=push`, `repoScope=doc-sweep-only`, `docMode=default`) and
+  **blocks a Claude-driven `git push`** when a non-doc file changed since docs were last reviewed.
+  Clear it by running `/doc-sweep:revise-docs-and-mark` (advances the per-clone marker at
+  `$(git rev-parse --git-common-dir)/doc-sweep-revise-marker`, not committed). One-shot bypass:
+  `DOC_SWEEP_REVISE_SKIP=1` or `--no-verify`. Reconfigure/uninstall via `/doc-sweep:install-revise-hook`.
 
 ## Versioning — read before touching a version
 

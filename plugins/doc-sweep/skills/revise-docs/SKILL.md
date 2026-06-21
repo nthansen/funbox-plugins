@@ -1,7 +1,7 @@
 ---
 name: revise-docs
 description: Review the session for learnings and update all documentation files in the repo. CLAUDE.md files are for Claude; README.md files are for humans. Use after a working session to capture new commands, renamed paths, gotchas, or architectural decisions into the right docs.
-allowed-tools: Read, Glob, Grep, Edit, Write, Skill
+allowed-tools: Read, Glob, Grep, Edit, Write, Skill, Bash(git ls-files*)
 ---
 
 Review this session for learnings and update documentation accordingly.
@@ -44,9 +44,22 @@ block on it.
    - After it completes, explicitly report its findings and any changes it proposed or made.
    - If it exits without output, say so clearly rather than continuing silently.
 
-2. **README.md files** — handle directly; glob `**/README.md` (skip `node_modules/`):
-   - Read each file
-   - Reflect on this session: new commands, renamed files, changed paths, new tools/config
-   - Propose a diff per file that needs changing
-   - Ask for approval before applying any changes
-   - Apply only the approved changes
+2. **README.md files** — handle directly using tracked-only discovery:
+   - Discover docs from tracked files: `git ls-files '*README.md' 'README.md'` (honors
+     .gitignore, so `node_modules/`, `dist/`, and other gitignored trees drop out
+     automatically). Also include local twins if present on disk: `audience-rules.local.md`,
+     `CLAUDE.local.md`, `*.local.md` (explicit existence-checks; never blanket-include
+     untracked files). Then drop any path whose leading directory component matches an entry
+     in the `excludeDirs` list read from `.claude/context/audience-rules.md`.
+   - **If `excludeDirs` is absent** (first run): scan the repository for likely-vendored
+     directories — git submodules, directories containing a non-root package manifest, and
+     well-known vendor directory names (e.g. `vendor/`, `third_party/`) — present the
+     candidates to the user, wait for confirmation, and persist the confirmed set as an
+     `excludeDirs` list in `.claude/context/audience-rules.md`. Subsequent runs read the
+     list silently without re-prompting.
+   - For each discovered (and not excluded) file:
+     - Read each file
+     - Reflect on this session: new commands, renamed files, changed paths, new tools/config
+     - Propose a diff per file that needs changing
+     - Ask for approval before applying any changes
+     - Apply only the approved changes

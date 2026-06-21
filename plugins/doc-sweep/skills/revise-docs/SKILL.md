@@ -47,10 +47,12 @@ block on it.
 2. **README.md files** — handle directly using tracked-only discovery:
    - Discover docs from tracked files: `git ls-files '*README.md' 'README.md'` (honors
      .gitignore, so `node_modules/`, `dist/`, and other gitignored trees drop out
-     automatically). Also include local twins if present on disk: `audience-rules.local.md`,
-     `CLAUDE.local.md`, `*.local.md` (explicit existence-checks; never blanket-include
-     untracked files). Then drop any path whose leading directory component matches an entry
-     in the `excludeDirs` list read from `.claude/context/audience-rules.md`.
+     automatically). Also include any tracked-or-untracked `*.local.md` doc twins present
+     on disk (e.g. `CLAUDE.local.md`, `audience-rules.local.md`) — do a single glob check
+     for `*.local.md` rather than probing each name individually; never blanket-include
+     untracked files in general, only these `*.local.md` twins are the named exception.
+     Then drop any path whose leading directory component matches an entry in the
+     `excludeDirs` list read from `.claude/context/audience-rules.md`.
    - **If `excludeDirs` is absent** (first run): scan the repository for likely-vendored
      directories — git submodules, directories containing a non-root package manifest, and
      well-known vendor directory names (e.g. `vendor/`, `third_party/`) — present the

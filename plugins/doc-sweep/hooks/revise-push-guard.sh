@@ -41,7 +41,6 @@ case "$trigger" in
   commit) sub='commit' ;;
   *)      sub='push' ;;
 esac
-# shellcheck disable=SC2086
 printf '%s' "$cmd" | grep -Eq "(^|[^[:alnum:]_])git([[:space:]]+-[^[:space:]]*([[:space:]]+[^-[:space:]][^[:space:]]*)?)*[[:space:]]+${sub}([[:space:]]|$)" || allow
 # Explicit bypass.
 printf '%s' "$cmd" | grep -Eq 'DOC_SWEEP_REVISE_SKIP=1|--no-verify' && allow

@@ -72,4 +72,16 @@ mark "$repo"
 ( cd "$repo" && echo y > new.js && git add . && git commit -qm feat )
 out="$(run 'git push' "$repo" "$cfg")"; assert_allow "$out" "commit-trigger ignores push"
 
+# --- Task 2: excludeDirs ---
+
+# excluded vendored source change must NOT block
+repo="$(mkrepo)"; cfg="$(mktemp)"; echo '{"trigger":"push","excludeDirs":["vendor"]}' > "$cfg"
+mark "$repo"
+( cd "$repo" && mkdir -p vendor/lib && echo z > vendor/lib/main.js && git add . && git commit -qm vendor )
+out="$(run 'git push' "$repo" "$cfg")"; assert_allow "$out" "excluded vendor source does not block"
+
+# first-party non-doc still blocks even with an excluded README also changed
+( cd "$repo" && echo a > app.js && echo b > vendor/lib/README.md && git add . && git commit -qm mix )
+out="$(run 'git push' "$repo" "$cfg")"; assert_deny "$out" "vendor README does not satisfy doc review"
+
 exit $fail

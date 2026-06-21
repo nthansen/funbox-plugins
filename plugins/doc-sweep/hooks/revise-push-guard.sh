@@ -33,6 +33,7 @@ if [ -n "$cfg" ] && [ -f "$cfg" ]; then
   docmode="$(node -e 'try{process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).docMode||"default")}catch(e){process.stdout.write("default")}' "$cfg" 2>/dev/null || echo default)"
   reposcope="$(node -e 'try{process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).repoScope||"all")}catch(e){process.stdout.write("all")}' "$cfg" 2>/dev/null || echo all)"
   trigger="$(node -e 'try{process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).trigger||"push")}catch(e){process.stdout.write("push")}' "$cfg" 2>/dev/null || echo push)"
+  excludes="$(node -e 'try{const a=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).excludeDirs;process.stdout.write(Array.isArray(a)?a.join("\n"):"")}catch(e){}' "$cfg" 2>/dev/null || echo)"
 fi
 
 # Only gate the configured trigger subcommand (push by default).
@@ -91,6 +92,16 @@ is_doc(){ # $1 = path; doc per $docmode
 nondoc=""
 while IFS= read -r f; do
   [ -n "$f" ] || continue
+  skip=0
+  if [ -n "$excludes" ]; then
+    while IFS= read -r ex; do
+      [ -n "$ex" ] || continue
+      case "$f" in "$ex"/*|"$ex") skip=1; break;; esac
+    done <<EX
+$excludes
+EX
+  fi
+  [ "$skip" = 1 ] && continue
   # shellcheck disable=SC2086
   is_doc "$f" || nondoc="$nondoc $f"
 done <<EOF

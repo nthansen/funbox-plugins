@@ -8,8 +8,8 @@ mkrepo(){ d="$(mktemp -d)"; ( cd "$d" && git init -q && git config user.email a@
 event(){ # $1=cmd $2=cwd
   node -e 'process.stdout.write(JSON.stringify({tool_name:"Bash",tool_input:{command:process.argv[1]},cwd:process.argv[2]}))' "$1" "$2"; }
 run(){ event "$1" "$2" | bash "$HOOK" "$3" 2>/dev/null; }
-assert_deny(){ [ -n "$1" ] && echo "ok: $2" || { echo "FAIL(expected deny): $2"; fail=1; }; }
-assert_allow(){ [ -z "$1" ] && echo "ok: $2" || { echo "FAIL(expected allow): $2"; fail=1; }; }
+assert_deny(){ if [ -n "$1" ]; then echo "ok: $2"; else echo "FAIL(expected deny): $2"; fail=1; fi; }
+assert_allow(){ if [ -z "$1" ]; then echo "ok: $2"; else echo "FAIL(expected allow): $2"; fail=1; fi; }
 
 mark(){ local d="$1" gd; gd="$(git -C "$d" rev-parse --git-common-dir)"; case "$gd" in /*) :;; *) gd="$d/$gd";; esac; git -C "$d" rev-parse HEAD > "$gd/doc-sweep-revise-marker"; }
 commitfile(){ local d="$1" f="$2"; mkdir -p "$d/$(dirname "$f")"; echo x >> "$d/$f"; git -C "$d" add -A; git -C "$d" commit -qm "change $f"; }

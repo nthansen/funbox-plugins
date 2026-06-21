@@ -3,22 +3,46 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Install the revise-docs push guard for this project: project-scoped settings, default doc-file set, guard only doc-sweep-enabled repos.",
+      "prompt": "Install the revise-docs guard for this project: project-scoped settings, default doc-file set, guard only doc-sweep-enabled repos, and gate on git commit (not push).",
       "assertions": [
         "Copies the hook script to a stable path under the project's .claude/hooks/",
-        "Writes a config JSON capturing the chosen docMode/repoScope (or equivalent)",
+        "Writes a config JSON capturing docMode/repoScope AND trigger:\"commit\" AND an excludeDirs array",
         "Merges a PreToolUse matcher:Bash hook entry into the project settings.json referencing the copied hook + config, preserving any existing settings",
+        "Offers to seed the review marker on this fresh install (seed-now / review-now / leave) rather than silently leaving it unset",
+        "Prints a structured summary listing the settings/hook/config paths, the trigger, marker state, bypass tokens, and how to edit/uninstall",
         "Re-running the install does not duplicate the hook entry (idempotent)"
       ],
       "files": []
     },
     {
       "id": 2,
-      "prompt": "Uninstall the revise-docs push guard from this project.",
+      "prompt": "Uninstall the revise-docs guard from this project.",
       "assertions": [
-        "Removes the push-guard PreToolUse entry (the one referencing doc-sweep-revise-push.sh) from settings.json",
+        "Removes the guard PreToolUse entry (the one referencing doc-sweep-revise-push.sh) from settings.json",
         "Deletes the copied hook script and the config JSON",
-        "Leaves unrelated settings (other hooks/keys) untouched"
+        "Leaves unrelated settings (other hooks/keys) untouched",
+        "Leaves the per-clone review marker file in place (does not delete it)"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I already installed the revise-docs guard here but I want to switch it from push to commit. Reconfigure it.",
+      "assertions": [
+        "Detects the existing install and offers Reconfigure / Uninstall / Cancel rather than doing a blind fresh install",
+        "On Reconfigure, rewrites the config JSON with the new trigger while preserving the other choices",
+        "Leaves the review marker file untouched during reconfigure (does not re-seed it)",
+        "Updates the settings.json matcher only if the hook path or settings location changed"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Install the guard user-global for all repos, default trigger. This repo vendors a third-party library under vendor/ and has a git submodule.",
+      "assertions": [
+        "Scans for likely-vendored directories (submodules, non-root package manifests, known vendor names) and presents candidates for confirmation",
+        "Persists the confirmed excludeDirs list into .claude/context/audience-rules.md",
+        "Mirrors the same excludeDirs into the hook config JSON written next to the hook"
       ],
       "files": []
     }

@@ -11,7 +11,6 @@ allowed-tools:
   - Bash(cp *)
   - Bash(rm -f*)
   - Bash(git config*)
-  - Bash(git submodule*)
   - Bash(git ls-files*)
 disable-model-invocation: true
 ---
@@ -34,9 +33,12 @@ parse the event JSON.
    - If **no install** is found → proceed to step 2 (fresh install).
    - If an install **is found**, offer three choices via `AskUserQuestion`:
      - **Reconfigure** — re-ask all choices from step 2 pre-filled with the values read from
-       the existing config JSON; then rewrite the config (re-copy the hook script only if the
-       target path changed); leave the review marker file untouched; print the structured
-       summary (step 6). Stop.
+       the existing config JSON; then rewrite the config; re-copy the hook script only if the
+       target path changed; if and only if the hook target path or settings location changed,
+       remove the old `PreToolUse` matcher entry (the one whose `command` references the old
+       hook path/file) and add a new one pointing to the updated paths — otherwise leave the
+       matcher as-is; leave the review marker file untouched; print the structured summary
+       (step 8). Stop.
      - **Uninstall** — follow the Uninstall section below. Stop.
      - **Cancel** — do nothing and exit. Stop.
 

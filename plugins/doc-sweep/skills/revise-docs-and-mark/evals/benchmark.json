@@ -2,20 +2,50 @@
   "skill": "revise-docs-and-mark",
   "pass_rate": 1,
   "threshold": 0.9,
-  "model": "claude-opus-4-8[1m]",
-  "source_hash": "sha256:a8f1248133e9d56819744900d65c2f138938c7c6ee9f1f1721d1cb678b83c2fc",
+  "model": "claude-sonnet-4-6",
+  "source_hash": "sha256:604c32d928cfa5ea7503092ea8c3baeb1d994a553cb3b7250aeb670617b8e17b",
   "results": [
     {
       "eval_id": 1,
-      "text": "Invokes the revise-docs review (loads audience rules and reviews docs)",
+      "text": "Invokes the revise-docs review (loads audience rules and reviews docs) rather than only writing the marker",
       "passed": true,
-      "evidence": "output.log: 'Rules loaded: base + funbox overlay'"
+      "evidence": "transcript: 'Rules loaded: base + default overlay'; CLAUDE-vs-README boundary applied (config note → CLAUDE.md ## Config; README left intact); outputs/CLAUDE.md confirms the substantive edit and git-log shows a real docs commit"
     },
     {
       "eval_id": 1,
-      "text": "Writes the review marker equal to current HEAD",
+      "text": "Writes the review marker at $(git rev-parse --git-common-dir)/doc-sweep-revise-marker equal to the current HEAD commit",
       "passed": true,
-      "evidence": "marker file == git rev-parse HEAD (exact match)"
+      "evidence": "doc-sweep-revise-marker == head-sha.txt == git-log top (14f1d44)"
+    },
+    {
+      "eval_id": 2,
+      "text": "Makes exactly ONE commit containing all the doc changes (not one commit per file)",
+      "passed": true,
+      "evidence": "git-log.txt: 2 commits total (init + one doc commit); git-show-stat.txt: that commit has 3 files changed"
+    },
+    {
+      "eval_id": 2,
+      "text": "Stages only documentation paths it edited and does NOT use git add -A / git add . (so unrelated in-flight working-tree changes are not swept into the doc commit)",
+      "passed": true,
+      "evidence": "git-status.txt post-commit shows src/app.js still modified/unstaged; git-show-stat.txt commit contains only CLAUDE.md + two README.md, not app.js"
+    },
+    {
+      "eval_id": 2,
+      "text": "Advances the review marker to the new HEAD after committing",
+      "passed": true,
+      "evidence": "doc-sweep-revise-marker == head-sha.txt == post-commit HEAD (302e30c)"
+    },
+    {
+      "eval_id": 3,
+      "text": "Determines no documentation updates are needed and makes no commit (does not create an empty commit)",
+      "passed": true,
+      "evidence": "git-log.txt has only the initial commit — no new/empty commit was created"
+    },
+    {
+      "eval_id": 3,
+      "text": "Still advances the review marker to the current HEAD so a previously-blocked push can proceed",
+      "passed": true,
+      "evidence": "doc-sweep-revise-marker == HEAD (671b88d) despite no commit being made"
     }
   ]
 }

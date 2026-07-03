@@ -35,6 +35,11 @@ message in the PR range or to the PR body). The check SHALL parse the event/diff
 - **WHEN** a PR changes a non-doc file and also changes `.claude/context/audience-rules.md`
 - **THEN** the shared classifier counts the `.claude/**/*.md` change as a doc and the check passes
 
+#### Scenario: Test-only change passes without an ack
+
+- **WHEN** a PR changes only files matching the shared classifier's `exemptPatterns` (e.g. `**/*.test.*`) and no doc-requiring file
+- **THEN** the classifier returns an empty `nonDoc` and the check passes with no acknowledgment required
+
 #### Scenario: Excluded paths are ignored
 
 - **WHEN** a PR changes only files under a configured excluded directory

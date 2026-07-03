@@ -74,6 +74,28 @@ test('excludeDirs paths are neither doc nor non-doc', () => {
 test('DEFAULT_DOC_PATTERNS includes a .claude glob', () => {
   assert.ok(DEFAULT_DOC_PATTERNS.some((p) => p.includes('.claude')));
 });
+
+test('test-only change is exempt (empty nonDoc, docChanged false)', () => {
+  const r = classify(['src/app.test.js', 'tests/unit/thing.js'], {});
+  assert.deepEqual(r.nonDoc, []);
+  assert.equal(r.docChanged, false);
+});
+
+test('tests alongside real code still enforce', () => {
+  const r = classify(['src/app.test.js', 'src/app.js'], {});
+  assert.deepEqual(r.nonDoc, ['src/app.js']);
+});
+
+test('excludeDirs wins over exempt and doc matching', () => {
+  const r = classify(['vendor/x.test.js', 'vendor/README.md'], { excludeDirs: ['vendor'] });
+  assert.deepEqual(r.nonDoc, []);
+  assert.equal(r.docChanged, false);
+});
+
+test('configured exemptPatterns replaces the default', () => {
+  const r = classify(['a.test.js'], { exemptPatterns: ['**/*.gen.js'] });
+  assert.deepEqual(r.nonDoc, ['a.test.js']); // .test.js no longer exempt
+});
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -100,6 +122,18 @@ export const DEFAULT_DOC_PATTERNS = [
   '**/.claude/**/*.md',
 ];
 
+// First-party changes that do not require docs (distinct from excludeDirs, which is vendored).
+// Evaluated after excludeDirs and before docPatterns. Default: common test files.
+export const DEFAULT_EXEMPT_PATTERNS = [
+  '**/*.test.*',
+  '**/*.spec.*',
+  '**/test/**',
+  '**/tests/**',
+  '**/__tests__/**',
+  '**/*_test.go',
+  '**/*_test.py',
+];
+
 // Translate a glob to an anchored RegExp. Supported: `**/` (optional dir prefix),
 // `**` (across segments), `*` (within one segment), literals. No braces/char-classes.
 export function globToRegExp(glob) {
@@ -121,17 +155,18 @@ export function globToRegExp(glob) {
   return new RegExp('^' + re + '$');
 }
 
-export function classify(files, { docPatterns, excludeDirs } = {}) {
-  const patterns = (docPatterns && docPatterns.length) ? docPatterns : DEFAULT_DOC_PATTERNS;
-  const regexes = patterns.map(globToRegExp);
+export function classify(files, { docPatterns, excludeDirs, exemptPatterns } = {}) {
+  const docRes = ((docPatterns && docPatterns.length) ? docPatterns : DEFAULT_DOC_PATTERNS).map(globToRegExp);
+  const exemptRes = ((exemptPatterns && exemptPatterns.length) ? exemptPatterns : DEFAULT_EXEMPT_PATTERNS).map(globToRegExp);
   const excludes = excludeDirs || [];
   const nonDoc = [];
   let docChanged = false;
   for (const f of files) {
     if (!f) continue;
-    if (excludes.some((ex) => f === ex || f.startsWith(ex + '/'))) continue;
-    if (regexes.some((r) => r.test(f))) docChanged = true;
-    else nonDoc.push(f);
+    if (excludes.some((ex) => f === ex || f.startsWith(ex + '/'))) continue; // excluded (vendored)
+    if (exemptRes.some((r) => r.test(f))) continue;                          // exempt (e.g. tests)
+    if (docRes.some((r) => r.test(f))) docChanged = true;                    // documentation
+    else nonDoc.push(f);                                                     // doc-requiring
   }
   return { nonDoc, docChanged };
 }
@@ -144,7 +179,7 @@ function main() {
   if (cfgPath) {
     try {
       const c = JSON.parse(readFileSync(cfgPath, 'utf8'));
-      opts = { docPatterns: c.docPatterns, excludeDirs: c.excludeDirs };
+      opts = { docPatterns: c.docPatterns, excludeDirs: c.excludeDirs, exemptPatterns: c.exemptPatterns };
     } catch { /* fall back to defaults */ }
   }
   let input = '';
@@ -196,6 +231,14 @@ git commit -m "feat(doc-sweep): add shared doc-classify.mjs classifier"
 # .claude markdown counts as a doc (regression: was misclassified non-doc)
 repo="$(mkrepo)"; base="$(basesha "$repo")"; commitfile "$repo" src/app.js; commitfile "$repo" .claude/context/audience-rules.md
 run "$base" "$repo"; assert_pass $? ".claude/*.md change satisfies the check"
+
+# test-only change is exempt → passes without an ack
+repo="$(mkrepo)"; base="$(basesha "$repo")"; commitfile "$repo" src/app.test.js
+run "$base" "$repo"; assert_pass $? "test-only change passes (exempt)"
+
+# tests + real code still enforces
+repo="$(mkrepo)"; base="$(basesha "$repo")"; commitfile "$repo" src/app.test.js; commitfile "$repo" src/app.js
+run "$base" "$repo"; assert_fail $? "tests + src still enforces"
 ```
 
 - [ ] **Step 2: Run to verify it fails**
@@ -253,6 +296,10 @@ git commit -m "refactor(doc-sweep): docs-ci-check delegates to doc-classify.mjs"
 # .claude markdown-only change since marker → allow (regression)
 repo="$(mkrepo)"; mark "$repo"; commitfile "$repo" .claude/context/audience-rules.md
 out="$(run 'git push' "$repo" "$no_cfg")"; assert_allow "$out" ".claude/*.md change allows push"
+
+# test-only change since marker → allow (exempt)
+repo="$(mkrepo)"; mark "$repo"; commitfile "$repo" src/app.test.js
+out="$(run 'git push' "$repo" "$no_cfg")"; assert_allow "$out" "test-only change allows push (exempt)"
 ```
 
 - [ ] **Step 2: Run to verify it fails**
@@ -317,10 +364,11 @@ Expected: `clean` (Tasks 2–3 removed script usages). Any hit → remove it.
 ## Machine-readable doc-file-set
 
 The guard scripts (CI check + push hook) classify paths via `doc-classify.mjs`, which reads a
-`docPatterns` glob list — the machine-readable twin of the audience table above. Default when
-unset: `**/CLAUDE*.md`, `**/README*.md`, `**/CHANGELOG.md`, `docs/**`, `.claude/**/*.md`.
-Installers persist the project's choice here (mirrored into the per-install config JSON, like
-`excludeDirs`):
+`docPatterns` glob list (the machine-readable twin of the audience table above) and an
+`exemptPatterns` list of first-party changes that don't require docs (default: tests). Defaults when
+unset: docs = `**/CLAUDE*.md`, `**/README*.md`, `**/CHANGELOG.md`, `docs/**`, `.claude/**/*.md`;
+exempt = common test globs. Installers persist the project's choices here (mirrored into the
+per-install config JSON, like `excludeDirs`):
 
     docPatterns:
       - "**/CLAUDE*.md"
@@ -328,6 +376,12 @@ Installers persist the project's choice here (mirrored into the per-install conf
       - "**/CHANGELOG.md"
       - "docs/**"
       - ".claude/**/*.md"
+    exemptPatterns:      # first-party paths that don't require docs (default: tests)
+      - "**/*.test.*"
+      - "**/*.spec.*"
+      - "**/test/**"
+      - "**/tests/**"
+      - "**/__tests__/**"
 ```
 
 - [ ] **Step 3: Commit**
@@ -384,7 +438,7 @@ git commit -m "feat(doc-sweep): installers vendor doc-classify.mjs and record do
         run: node --test plugins/doc-sweep/hooks/doc-classify.test.mjs
 ```
 
-- [ ] **Step 2: Update README + CHANGELOG** — README: replace `docMode` doc-file-set copy with `docPatterns` + a line that a single `doc-classify.mjs` backs both guards. CHANGELOG: add a "Unify doc classification" entry noting the `.claude/**` fix, `docMode` retirement (BREAKING for stale configs), and the shared module.
+- [ ] **Step 2: Update README + CHANGELOG** — README: replace `docMode` doc-file-set copy with `docPatterns`; document `exemptPatterns` (test-only changes pass without an ack; configurable); note a single `doc-classify.mjs` backs both guards. CHANGELOG: add a "Unify doc classification" entry noting the `.claude/**` fix, `docMode` retirement (BREAKING for stale configs), the shared module, and the new test-exempt behavior.
 
 - [ ] **Step 3: Full local gate**
 
@@ -413,6 +467,6 @@ git commit -m "ci+docs(doc-sweep): run doc-classify tests; document docPatterns"
 
 ## Self-Review
 
-- **Spec coverage:** `doc-classification` capability → Task 1 (module, default incl. `.claude/**`, glob, config resolution). `docs-staleness-ci` MODIFIED (delegate + vendor + docPatterns) → Tasks 2, 5. `revise-docs-push-guard` MODIFIED (delegate, retire docMode, vendor, docPatterns) → Tasks 3, 4, 5. No spec requirement left without a task.
+- **Spec coverage:** `doc-classification` capability → Task 1 (module, default incl. `.claude/**`, glob, config resolution, **exemptPatterns** incl. test-only-exempt / tests+code-enforces / excludeDirs-wins). `docs-staleness-ci` MODIFIED (delegate + vendor + docPatterns; test-only-passes scenario) → Tasks 2, 5. `revise-docs-push-guard` MODIFIED (delegate, retire docMode, vendor, docPatterns) → Tasks 3, 4, 5. No spec requirement left without a task.
 - **Placeholder scan:** none — all code steps carry real code.
-- **Type consistency:** `classify()` returns `{nonDoc, docChanged}` everywhere; scripts read `.nonDoc`/`.docChanged` verbatim; `globToRegExp`/`DEFAULT_DOC_PATTERNS` names match between module and tests.
+- **Type consistency:** `classify()` returns `{nonDoc, docChanged}` everywhere; scripts read `.nonDoc`/`.docChanged` verbatim; `globToRegExp`/`DEFAULT_DOC_PATTERNS`/`DEFAULT_EXEMPT_PATTERNS` names match between module and tests.

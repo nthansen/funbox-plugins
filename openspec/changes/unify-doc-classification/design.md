@@ -24,8 +24,9 @@ read via `JSON.parse`; a `uses:`-style shared action was previously rejected on 
 - Wiring the skills' runtime to `docPatterns` — they classify by *audience* (Claude vs human) among
   known docs, not doc-vs-non-doc, so there is no `is_doc` to share. They stay prose-driven.
 - Changing `[skip docs]` semantics, the merge-base baseline, or the advisory (non-blocking) posture.
-- Improving the heuristic's inherent crudeness (it still can't tell whether docs were *warranted*);
-  that limitation is acknowledged, not addressed here.
+- Fully solving whether docs are *warranted* — `exemptPatterns` (D7) coarsely reduces false
+  positives for known no-doc categories (tests by default), but the check still can't judge whether
+  an arbitrary code change needs docs; `[skip docs]` remains the escape hatch for the rest.
 
 ## Decisions
 
@@ -60,9 +61,21 @@ any external dependency. Vendored alongside each installed script.
 
 **D6 — Classifier interface.** `doc-classify.mjs` reads a newline-separated file list on stdin,
 takes optional `--config <path>`, and emits `{"nonDoc":[…],"docChanged":bool}` on stdout. Config
-resolution: `docPatterns`/`excludeDirs` from `--config` JSON if present, else built-in default
-(`CLAUDE*.md`, `README*.md`, `CHANGELOG.md`, `docs/**`, `.claude/**/*.md`). The hook additionally
-invokes it per-commit for its `[skip docs]` per-commit rule (small ranges, acceptable cost).
+resolution: `docPatterns`/`excludeDirs`/`exemptPatterns` from `--config` JSON if present, else
+built-in defaults (`CLAUDE*.md`, `README*.md`, `CHANGELOG.md`, `docs/**`, `.claude/**/*.md`). The
+hook additionally invokes it per-commit for its `[skip docs]` per-commit rule (small ranges,
+acceptable cost).
+
+**D7 — Exempt categories (three-way classification).** Add an `exemptPatterns` glob set for
+first-party changes that don't require docs, evaluated AFTER `excludeDirs` and BEFORE `docPatterns`;
+an exempt path is neither doc nor non-doc (dropped from `nonDoc`, doesn't set `docChanged`). Default:
+common test globs (`**/*.test.*`, `**/*.spec.*`, `**/test/**`, `**/tests/**`, `**/__tests__/**`,
+`**/*_test.go`, `**/*_test.py`); a configured list replaces the default. This directly addresses the
+adversarial review's "crude nag" critique — a test-only PR passes without an ack, while tests +
+`src/app.js` still enforces. *Alternatives:* a richer named-category policy (tests/ci/deps/generated
+toggles) — rejected as over-built (YAGNI); merging into `excludeDirs` — rejected to preserve the
+vendored-vs-doesn't-need-docs *intent* distinction, even though the mechanism is the same "drop from
+nonDoc." Default kept to tests only; projects add lockfiles/CI/etc. via `exemptPatterns`.
 
 ## Risks / Trade-offs
 

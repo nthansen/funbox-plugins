@@ -40,12 +40,12 @@ base, under which all `*.md` files beneath `.claude/` are Claude-facing document
 
 ### Requirement: Configurable patterns and glob semantics
 
-The module SHALL resolve `docPatterns` and `excludeDirs` from the `--config` JSON when present,
-otherwise from the built-in default (`excludeDirs` defaulting to empty). Glob matching SHALL support
-`*` (matches within a single path segment) and `**` (matches across segments), plus literal
-segments. A path under any `excludeDirs` entry (the entry itself or a descendant) SHALL be treated as
-**excluded** — neither documentation nor non-documentation — and SHALL NOT appear in `nonDoc` nor set
-`docChanged`.
+The module SHALL resolve `docPatterns`, `excludeDirs`, and `exemptPatterns` from the `--config` JSON
+when present, otherwise from the built-in defaults (`excludeDirs` defaulting to empty). Glob matching
+SHALL support `*` (matches within a single path segment) and `**` (matches across segments), plus
+literal segments. A path under any `excludeDirs` entry (the entry itself or a descendant) SHALL be
+treated as **excluded** — neither documentation nor non-documentation — and SHALL NOT appear in
+`nonDoc` nor set `docChanged`.
 
 #### Scenario: docPatterns override replaces the default
 
@@ -61,3 +61,30 @@ segments. A path under any `excludeDirs` entry (the entry itself or a descendant
 
 - **WHEN** `docPatterns` contains `.claude/**/*.md` and the changed path is `.claude/context/audience-rules.md`
 - **THEN** the path matches and classifies as documentation
+
+### Requirement: Exempt patterns for changes that do not require docs
+
+The module SHALL support an `exemptPatterns` glob list identifying first-party changes that do not
+require documentation (distinct from `excludeDirs`, which marks vendored/external paths). A path
+matching `exemptPatterns` — evaluated AFTER `excludeDirs` and BEFORE `docPatterns` — SHALL be treated
+as **exempt**: it SHALL NOT appear in `nonDoc` and SHALL NOT set `docChanged`. When unset, the
+built-in default `exemptPatterns` SHALL cover common test files: `**/*.test.*`, `**/*.spec.*`,
+`**/test/**`, `**/tests/**`, `**/__tests__/**`, `**/*_test.go`, `**/*_test.py`. A configured
+`exemptPatterns` replaces the default. The consequence is that a change whose only non-doc,
+non-excluded paths are exempt yields an empty `nonDoc` and therefore passes the staleness guards
+without an acknowledgment, while any doc-requiring path alongside it still enforces.
+
+#### Scenario: Test-only change is exempt
+
+- **WHEN** the changed set is `src/app.test.js` and `tests/unit/foo_spec.rb` (matching the default exempt globs) with no override
+- **THEN** both are exempt — `nonDoc` is empty and `docChanged` is false
+
+#### Scenario: Tests alongside real code still enforce
+
+- **WHEN** the changed set is `src/app.test.js` and `src/app.js`
+- **THEN** the test file is exempt but `src/app.js` remains non-doc, so `nonDoc` is `["src/app.js"]`
+
+#### Scenario: excludeDirs wins over exempt and doc matching
+
+- **WHEN** a path is under a configured `excludeDirs` entry AND would also match `exemptPatterns` or `docPatterns`
+- **THEN** it is excluded (evaluated first) and counts as neither doc, non-doc, nor exempt

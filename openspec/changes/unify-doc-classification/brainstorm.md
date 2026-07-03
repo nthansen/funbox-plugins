@@ -81,6 +81,18 @@ into once. Node is already a hard dependency ("no jq"); a module is unit-testabl
 than copy-pasted. A reusable `uses:` action was previously rejected on supply-chain grounds; the
 classifier is vendored alongside the check script instead.
 
+**Q6 — Exempt categories (raised mid-apply).** Idea: predefined defaults where the guard doesn't
+enforce — e.g. a test-only change, or "other things like that." This is the precision upgrade the
+adversarial review's "crude nag" critique wanted: doc / non-doc becomes doc / exempt / doc-requiring.
+Three sub-decisions: (a) **fold into this change** (the classifier is being built now — cheap
+extension) vs a separate follow-up → fold in; (b) **model** — a simple `exemptPatterns` glob list
+(reuses the classifier's ignore mechanism, distinct from `excludeDirs` by *intent*) vs a richer
+named-category policy (tests/ci/deps/generated toggles) → simple `exemptPatterns` (YAGNI); (c)
+**default breadth** — tests only vs tests + lockfiles + CI → **tests only, rest configurable** via
+`exemptPatterns`. Mechanics: exempt is evaluated after `excludeDirs`, before `docPatterns`; an exempt
+path is dropped from `nonDoc` and doesn't set `docChanged`, so a test-only PR passes without an ack
+while tests + real code still enforces.
+
 ## Design shape (validated)
 
 - **`doc-classify.mjs`** — file list on stdin, optional `--config <path>`; reads

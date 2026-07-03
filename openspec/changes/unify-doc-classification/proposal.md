@@ -10,9 +10,15 @@ script-side definition to a single shared, declarative source.
 ## What Changes
 
 - **New shared classifier** `plugins/doc-sweep/hooks/doc-classify.mjs` — one node module that,
-  given a file list, classifies each path as doc / non-doc / excluded using a `docPatterns` set
-  (+ `excludeDirs`) or a built-in default. Contains a small in-house glob matcher (`*`, `**`), no
-  external deps; unit-tested.
+  given a file list, classifies each path as doc / non-doc / excluded / exempt using `docPatterns`,
+  `excludeDirs`, and `exemptPatterns` sets (or built-in defaults). Contains a small in-house glob
+  matcher (`*`, `**`), no external deps; unit-tested.
+- **Exempt categories that don't require docs** — a new `exemptPatterns` glob set (default: common
+  test files: `**/*.test.*`, `**/*.spec.*`, `**/test/**`, `**/tests/**`, `**/__tests__/**`,
+  `**/*_test.go`, `**/*_test.py`; configurable per project). A change whose only non-doc paths are
+  exempt passes the guards **without** an ack; a doc-requiring path alongside it still enforces.
+  This upgrades the check from a crude "any code change needs docs" to "only doc-worthy code needs
+  docs." Distinct from `excludeDirs` (vendored/external) by intent.
 - **Built-in default doc-set now includes `.claude/**/*.md`** (alongside `CLAUDE*.md`, `README*.md`,
   `CHANGELOG.md`, `docs/**`) — **fixes the divergence bug**.
 - **Both scripts become thin git-plumbing wrappers** — `revise-push-guard.sh` and
@@ -34,9 +40,10 @@ advisory posture; any LLM-in-CI judgement.
 ## Capabilities
 
 ### New Capabilities
-- `doc-classification`: the shared doc/non-doc/excluded classifier — its `docPatterns` +
-  `excludeDirs` inputs, the built-in default doc-set (including `.claude/**/*.md`), the glob
-  semantics, and the config-resolution order. Owned by `doc-classify.mjs`.
+- `doc-classification`: the shared doc/non-doc/excluded/exempt classifier — its `docPatterns`,
+  `excludeDirs`, and `exemptPatterns` inputs, the built-in defaults (doc-set including
+  `.claude/**/*.md`; exempt-set covering common tests), the glob semantics, and the
+  config-resolution order. Owned by `doc-classify.mjs`.
 
 ### Modified Capabilities
 - `docs-staleness-ci`: the CI check delegates classification to `doc-classification` instead of an

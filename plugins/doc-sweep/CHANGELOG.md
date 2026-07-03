@@ -10,6 +10,23 @@ For what the plugin does and how to use it, see [README.md](README.md).
 
 ## Notable additions
 
+**Docs-staleness CI check** (`add-docs-staleness-ci`, 2026-07)
+
+- New PR-time GitHub Actions check (`hooks/docs-ci-check.sh`) that **fails** a pull request when
+  non-doc files changed but no documentation did — catching drift on human commits, contributors
+  without doc-sweep, and **fork PRs**, which the local push guard can't reach. Deterministic: no
+  LLM, no API key, no secret; baseline is the PR merge base (no marker). Uses `node` (no `jq`) and
+  fails open if the base can't be resolved.
+- New acknowledgment token **`[skip docs]`** (mirrors `[skip ci]`): a code-only PR clears the
+  check by updating docs, or putting `[skip docs]` in any commit message, or in the PR body
+  (editable in-browser — no rebase). The **same token now also clears the local push guard** (it
+  must be present on every non-doc commit in the range), so both guards share one vocabulary.
+- New installer skill `install-docs-ci` (`/doc-sweep:install-docs-ci`) that vendors the check
+  script under `.github/doc-sweep/` and scaffolds a self-contained `pull_request` workflow — no
+  external action reference. Idempotent, with reconfigure/uninstall.
+- The push guard is repositioned as the optional *local, pre-push* companion; CI is the primary
+  drift guard. (funbox itself now uses the CI check and no longer installs the local hook.)
+
 **Guard improvements** (`revise-docs-push-guard` branch, 2026-06)
 
 - **Configurable trigger** — the guard can now gate `git commit` instead of `git push`

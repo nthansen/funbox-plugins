@@ -1,15 +1,1 @@
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "c:/git/funbox-plugins/.claude/hooks/doc-sweep-revise-push.sh c:/git/funbox-plugins/.claude/hooks/doc-sweep-revise.json"
-          }
-        ]
-      }
-    ]
-  }
-}
+{}

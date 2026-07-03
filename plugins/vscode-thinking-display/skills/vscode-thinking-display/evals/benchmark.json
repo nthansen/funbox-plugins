@@ -3,13 +3,13 @@
   "pass_rate": 1,
   "threshold": 0.9,
   "model": "claude-opus-4-8[1m]",
-  "source_hash": "sha256:acc118a0271b7908ae0d16c6d4d346564f7037632c0e1fc8502de7ba773639d4",
+  "source_hash": "sha256:078e418bd113ac241f0fc79926bf7c3bbd4543820c8a521d8c2c9a14684e1abd",
   "results": [
     {
       "eval_id": 1,
       "text": "The --thinking-display chokepoint is rewritten so an omitted display defaults to \"summarized\"",
       "passed": true,
-      "evidence": "patched extension.js contains l.display??\"summarized\")"
+      "evidence": "extension.js contains .push(\"--thinking-display\",l.display??\"summarized\")"
     },
     {
       "eval_id": 1,
@@ -21,13 +21,13 @@
       "eval_id": 1,
       "text": "Re-running the display patch is idempotent (reports ALREADY PATCHED, no further change)",
       "passed": true,
-      "evidence": "2nd display patch logged ALREADY PATCHED"
+      "evidence": "2nd display patch logged ALREADY PATCHED; file byte-unchanged"
     },
     {
       "eval_id": 2,
       "text": "The expand-state useState(!1) is flipped to useState(!0) in the areThinkingBlocksExpanded webview bundle",
       "passed": true,
-      "evidence": "webview/index.js contains R.useState(!0)"
+      "evidence": "webview/index.js flipped to ne(!0),$=Q8t(e);function ... (minified useState alias adjacent to the Ctrl+O handler)"
     },
     {
       "eval_id": 2,
@@ -39,7 +39,7 @@
       "eval_id": 2,
       "text": "Re-running the expand patch is idempotent (reports ALREADY PATCHED, no further change)",
       "passed": true,
-      "evidence": "2nd expand patch logged ALREADY PATCHED"
+      "evidence": "2nd expand patch logged ALREADY PATCHED; file byte-unchanged"
     },
     {
       "eval_id": 3,

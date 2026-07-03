@@ -10,10 +10,12 @@
     state to true so thinking renders expanded from the start. The click / Ctrl+O
     toggle still works normally afterwards.
 
-    The state lives in the webview bundle as a `useState(!1)` immediately followed
-    by the Ctrl+O keyboard handler (`if(<e>.ctrlKey&&<e>.key==="o")...`). That
-    handler is the stable anchor: this patches the `useState(!1)` tied to it to
-    `useState(!0)`. Minified identifiers are wildcarded, so it survives renames.
+    The state lives in the webview bundle as a minified `useState` hook call
+    initialised to `!1` (e.g. `[state,setter]=ne(!1)`, where `ne` is the minified
+    `useState` alias — there is no literal `.useState(`) immediately followed by the
+    Ctrl+O keyboard handler (`if(<e>.ctrlKey&&<e>.key==="o")...`). That handler is
+    the stable anchor: this patches the `ne(!1)` tied to it to `ne(!0)`. The hook
+    callee and all identifiers are wildcarded, so it survives renames.
 
     Idempotent: a state already initialized to `!0` is left alone. A single
     pristine *.js.orig backup is made the first time the file is modified.
@@ -34,12 +36,16 @@ $ErrorActionPreference = 'Stop'
 $findProbe = 'areThinkingBlocksExpanded'
 
 # The expand-state initializer, anchored on the Ctrl+O thinking-toggle handler that
-# immediately follows it. Group 1 = up to the useState arg, group 2 = the anchor tail.
-$pattern = '(\.useState\()!1(\)(?:(?!useState)[^;]){0,60};function [A-Za-z_$][\w$]*\([A-Za-z_$][\w$]*\)\{if\([A-Za-z_$][\w$]*\.ctrlKey&&[A-Za-z_$][\w$]*\.key==="o")'
+# immediately follows it. Group 1 = the hook callee up to its "(" (an optional
+# "ns." prefix + a minified identifier, e.g. `ne(` or `r.useState(`), group 2 = the
+# anchor tail. The gap guard `(?!![01])` forbids another `!0`/`!1` initializer inside
+# the window, so the flip lands on the state adjacent to the handler and skips the
+# earlier sibling `ne(!1)` states destructured on the same line.
+$pattern = '((?:[A-Za-z_$][\w$]*\.)?[A-Za-z_$][\w$]*\()!1(\)(?:(?!![01])[^;]){0,60};function [A-Za-z_$][\w$]*\([A-Za-z_$][\w$]*\)\{if\([A-Za-z_$][\w$]*\.ctrlKey&&[A-Za-z_$][\w$]*\.key==="o")'
 $replacement = '${1}!0${2}'
 
 # Recognises an already-patched (expanded-by-default) state, for idempotency.
-$alreadyPattern = '\.useState\(!0\)(?:(?!useState)[^;]){0,60};function [A-Za-z_$][\w$]*\([A-Za-z_$][\w$]*\)\{if\([A-Za-z_$][\w$]*\.ctrlKey&&[A-Za-z_$][\w$]*\.key==="o"'
+$alreadyPattern = '(?:[A-Za-z_$][\w$]*\.)?[A-Za-z_$][\w$]*\(!0\)(?:(?!![01])[^;]){0,60};function [A-Za-z_$][\w$]*\([A-Za-z_$][\w$]*\)\{if\([A-Za-z_$][\w$]*\.ctrlKey&&[A-Za-z_$][\w$]*\.key==="o"'
 
 if (-not (Test-Path -LiteralPath $ExtensionsDir)) {
     Write-Error "Extensions directory not found: $ExtensionsDir"

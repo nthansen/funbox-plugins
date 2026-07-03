@@ -10,10 +10,12 @@
 # to true so thinking renders expanded from the start. The click / Ctrl+O toggle
 # still works normally afterwards.
 #
-# The state lives in the webview bundle as a useState(!1) immediately followed by
-# the Ctrl+O keyboard handler (if(<e>.ctrlKey&&<e>.key==="o")...). That handler is
-# the stable anchor: this patches the useState(!1) tied to it to useState(!0).
-# Minified identifiers are wildcarded, so it survives renames.
+# The state lives in the webview bundle as a minified useState hook call initialised
+# to !1 (e.g. [state,setter]=ne(!1), where ne is the minified useState alias — there
+# is no literal .useState(), immediately followed by the Ctrl+O keyboard handler
+# (if(<e>.ctrlKey&&<e>.key==="o")...). That handler is the stable anchor: this patches
+# the ne(!1) tied to it to ne(!0). The hook callee and all identifiers are wildcarded,
+# so it survives renames.
 #
 # Idempotent: a state already initialized to !0 is left alone. A single pristine
 # *.js.orig backup is made the first time the file is modified.
@@ -108,10 +110,12 @@ for f in "${files[@]}"; do
     counts=$(perl -0777 -pe '
         our ($p, $a);
         BEGIN { $p = 0; $a = 0; }
-        # Already expanded-by-default? (idempotency)
-        $a = () = /\.useState\(!0\)(?:(?!useState)[^;]){0,60};function [A-Za-z_\$][\w\$]*\([A-Za-z_\$][\w\$]*\)\{if\([A-Za-z_\$][\w\$]*\.ctrlKey&&[A-Za-z_\$][\w\$]*\.key==="o"/g;
+        # Already expanded-by-default? (idempotency). The hook callee is an optional
+        # "ns." prefix + minified identifier (e.g. ne( or r.useState(); the gap guard
+        # (?!![01]) forbids another !0/!1 initializer inside the window.
+        $a = () = /(?:[A-Za-z_\$][\w\$]*\.)?[A-Za-z_\$][\w\$]*\(!0\)(?:(?!![01])[^;]){0,60};function [A-Za-z_\$][\w\$]*\([A-Za-z_\$][\w\$]*\)\{if\([A-Za-z_\$][\w\$]*\.ctrlKey&&[A-Za-z_\$][\w\$]*\.key==="o"/g;
         # Flip the initial state to expanded.
-        $p = s#(\.useState\()!1(\)(?:(?!useState)[^;]){0,60};function [A-Za-z_\$][\w\$]*\([A-Za-z_\$][\w\$]*\)\{if\([A-Za-z_\$][\w\$]*\.ctrlKey&&[A-Za-z_\$][\w\$]*\.key==="o")#${1}!0${2}#g;
+        $p = s#((?:[A-Za-z_\$][\w\$]*\.)?[A-Za-z_\$][\w\$]*\()!1(\)(?:(?!![01])[^;]){0,60};function [A-Za-z_\$][\w\$]*\([A-Za-z_\$][\w\$]*\)\{if\([A-Za-z_\$][\w\$]*\.ctrlKey&&[A-Za-z_\$][\w\$]*\.key==="o")#${1}!0${2}#g;
         END { print STDERR "PATCHED=$p ALREADY=$a\n"; }
     ' "$f" 2>&1 1>"$tmp")
 

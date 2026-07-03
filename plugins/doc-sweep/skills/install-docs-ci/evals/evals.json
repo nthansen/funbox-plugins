@@ -1,0 +1,49 @@
+{
+  "skill_name": "install-docs-ci",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Install the doc-sweep docs-staleness CI check for this project with the default doc-file set.",
+      "assertions": [
+        "Vendors the check script docs-ci-check.sh into the project's .github/doc-sweep/ directory",
+        "Writes a config JSON at .github/doc-sweep/docs-ci.json capturing docMode AND an excludeDirs array",
+        "Scaffolds a pull_request workflow at .github/workflows/doc-sweep-docs.yml that runs the vendored check script with checkout fetch-depth:0",
+        "Prints a structured summary listing the workflow/script/config paths, the doc-file set, the [skip docs] token, the branch-protection note, and how to edit/uninstall",
+        "Does not scaffold anything until the user confirms",
+        "Re-running the install does not duplicate the workflow (idempotent)"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Uninstall the doc-sweep docs-staleness CI check from this project.",
+      "assertions": [
+        "Deletes the scaffolded workflow .github/workflows/doc-sweep-docs.yml",
+        "Deletes the vendored check script and the docs-ci.json config under .github/doc-sweep/",
+        "Leaves unrelated workflows and files untouched",
+        "Confirms what was removed (workflow, script, config paths)"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I already set up the docs CI check here but I want to switch the doc-file set to minimal. Reconfigure it.",
+      "assertions": [
+        "Detects the existing install and offers Reconfigure / Uninstall / Cancel rather than a blind fresh install",
+        "On Reconfigure, rewrites the docs-ci.json config with docMode:\"minimal\" while preserving the other choices",
+        "Leaves the workflow file in place (rewrites it only if its path or name changed)"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Set up the docs CI check for this project. It vendors a third-party library under vendor/ and has a git submodule.",
+      "assertions": [
+        "Scans for likely-vendored directories (submodules, non-root package manifests, known vendor names) and presents candidates for confirmation",
+        "Records the confirmed excludeDirs list into the .github/doc-sweep/docs-ci.json config",
+        "Reads an existing excludeDirs list from .claude/context/audience-rules.md if one is already present rather than re-prompting"
+      ],
+      "files": []
+    }
+  ]
+}

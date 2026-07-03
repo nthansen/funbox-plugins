@@ -84,4 +84,15 @@ out="$(run 'git push' "$repo" "$cfg")"; assert_allow "$out" "excluded vendor sou
 ( cd "$repo" && echo a > app.js && echo b > vendor/lib/README.md && git add . && git commit -qm mix )
 out="$(run 'git push' "$repo" "$cfg")"; assert_deny "$out" "vendor README does not satisfy doc review"
 
+# --- shared [skip docs] acknowledgment clears the hook (parity with the CI check) ---
+
+# non-doc change whose commit message carries [skip docs] → allow
+repo="$(mkrepo)"; mark "$repo"
+( cd "$repo" && echo y > new.js && git add . && git commit -qm "fix: bug [skip docs]" )
+out="$(run 'git push' "$repo" "$no_cfg")"; assert_allow "$out" "[skip docs] in commit message allows push"
+
+# a later un-acked non-doc commit still blocks (token must be present in the range)
+commitfile "$repo" other.js
+out="$(run 'git push' "$repo" "$no_cfg")"; assert_deny "$out" "un-acked later non-doc commit still denies"
+
 exit $fail

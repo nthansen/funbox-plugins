@@ -79,11 +79,43 @@ Installing doc-sweep **auto-installs `claude-md-management`** — as long as you
 `claude-plugins-official` marketplace added (most setups do). If you don't, Claude Code
 reports a `dependency-unsatisfied` error with the command to add it.
 
+## CI docs check (opt-in)
+
+The **docs-staleness CI check** is a GitHub Actions workflow that runs on every pull request and
+**fails** when non-doc files changed but no documentation did. Unlike the local push guard below,
+it catches drift on *everyone's* contributions — human commits, contributors without doc-sweep,
+and **fork PRs**. It's deterministic: no LLM, no API key, no secret. The baseline is the PR's
+merge base, so there's no marker or state to maintain.
+
+A pull request clears the check when any one of these is true:
+
+- a documentation file was updated, or
+- a **`[skip docs]`** token (mirroring `[skip ci]`) appears in any commit message in the PR, or
+- a **`[skip docs]`** line appears in the PR description (editable in the browser — no rebase).
+
+So a legitimate code-only change — a bug fix that needs no docs — is never a hard blocker; you
+just add `[skip docs]`.
+
+Nothing is installed automatically. To set it up, run:
+
+```text
+/doc-sweep:install-docs-ci
+```
+
+The installer vendors the check script under `.github/doc-sweep/` and scaffolds a `pull_request`
+workflow at `.github/workflows/doc-sweep-docs.yml` — self-contained, with no external action
+reference to trust. Commit the scaffolded files so the check runs on future PRs. Whether a failing
+check **blocks** merge is your branch-protection choice: make the `docs-staleness` job a required
+status check to block, otherwise it's advisory. Re-run the command to reconfigure or uninstall.
+
+The CI check and the push guard below share the same **`[skip docs]`** token, so you learn one
+acknowledgment for both.
+
 ## Push guard (opt-in)
 
-The **revise-docs push guard** is an optional `PreToolUse` hook that blocks a Claude-driven
-`git push` when documentation looks stale — specifically, when a non-doc file has changed
-since docs were last reviewed. It prompts Claude to run `/doc-sweep:revise-docs-and-mark`
+The **revise-docs push guard** is an optional `PreToolUse` hook — the *local, pre-push* companion
+to the CI check above — that blocks a Claude-driven `git push` when documentation looks stale —
+specifically, when a non-doc file has changed since docs were last reviewed. It prompts Claude to run `/doc-sweep:revise-docs-and-mark`
 — a thin wrapper that runs the normal `revise-docs` review (unchanged) and then records the
 review snapshot the hook checks — commit any doc changes, and then push. The snapshot
 mechanism lives entirely in the guard; `revise-docs` itself is untouched.
@@ -117,6 +149,10 @@ token or add `--no-verify`:
 DOC_SWEEP_REVISE_SKIP=1 git push
 git push --no-verify
 ```
+
+You can also acknowledge a change as not needing docs with the shared **`[skip docs]`** token
+(the same one the CI check honors): put `[skip docs]` in the commit message. The guard clears
+once every non-doc commit in the range since the last review carries it.
 
 ### Caveats
 

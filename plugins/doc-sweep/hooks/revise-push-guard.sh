@@ -107,9 +107,43 @@ done <<EOF
 $changed
 EOF
 
+has_skip(){ # $1 = commit sha; true if its message carries the shared [skip docs] token
+  git log -1 --format=%B "$1" 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{process.exit(/\[skip docs\]/i.test(s)?0:1)})' 2>/dev/null
+}
+
 if [ -n "$nondoc" ]; then
+  # Shared `[skip docs]` acknowledgment (same token as the docs-staleness CI check). The hook's
+  # range is long-lived (marker..HEAD), so — unlike the single-PR CI check — the token must be
+  # present on EVERY non-doc commit to clear, otherwise one acked commit would disable the guard
+  # for all later work until the marker advances. Uses node (no grep) to match the CI check.
+  unacked=0
+  while IFS= read -r c; do
+    [ -n "$c" ] || continue
+    has_skip "$c" && continue   # this commit is acknowledged
+    while IFS= read -r f; do
+      [ -n "$f" ] || continue
+      skip=0
+      if [ -n "$excludes" ]; then
+        while IFS= read -r ex; do
+          [ -n "$ex" ] || continue
+          case "$f" in "$ex"/*|"$ex") skip=1; break;; esac
+        done <<EX
+$excludes
+EX
+      fi
+      [ "$skip" = 1 ] && continue
+      if ! is_doc "$f"; then unacked=1; break; fi
+    done <<CF
+$(git diff-tree --no-commit-id --name-only -r "$c" 2>/dev/null)
+CF
+    [ "$unacked" = 1 ] && break
+  done <<CL
+$(git rev-list "$range" 2>/dev/null)
+CL
+  [ "$unacked" = 0 ] && allow   # every non-doc commit carried [skip docs]
+
   verb="push"; [ "$trigger" = "commit" ] && verb="commit"
   # shellcheck disable=SC2086
-  emit_deny "Docs may be stale — non-doc file(s) changed since docs were last reviewed:${nondoc}. Run /doc-sweep:revise-docs-and-mark to review docs and record the review snapshot, commit any changes, then ${verb} again. (Add DOC_SWEEP_REVISE_SKIP=1 before the command, or --no-verify, to bypass.)"
+  emit_deny "Docs may be stale — non-doc file(s) changed since docs were last reviewed:${nondoc}. Run /doc-sweep:revise-docs-and-mark to review docs and record the review snapshot, commit any changes, then ${verb} again. (Add '[skip docs]' to the commit message, or DOC_SWEEP_REVISE_SKIP=1 / --no-verify before the command, to bypass.)"
 fi
 allow

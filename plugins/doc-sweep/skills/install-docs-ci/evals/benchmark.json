@@ -1,0 +1,105 @@
+{
+  "skill": "install-docs-ci",
+  "pass_rate": 1.0,
+  "threshold": 0.9,
+  "model": "claude-opus-4-8[1m]",
+  "source_hash": "sha256:625d1a0d8d25baa351c06556b4d53278cff0a5478f9d22c299f34fa440d219d5",
+  "results": [
+    {
+      "eval_id": 1,
+      "text": "Vendors the check script docs-ci-check.sh into the project's .github/doc-sweep/ directory",
+      "passed": true,
+      "evidence": "Copied bundled hooks/docs-ci-check.sh to $ws/.github/doc-sweep/docs-ci-check.sh; diff -q vs source = identical"
+    },
+    {
+      "eval_id": 1,
+      "text": "Writes a config JSON at .github/doc-sweep/docs-ci.json capturing docMode AND an excludeDirs array",
+      "passed": true,
+      "evidence": "docs-ci.json = {docMode:\"default\", excludeDirs:[]}; node JSON.parse confirmed docMode + Array.isArray(excludeDirs)"
+    },
+    {
+      "eval_id": 1,
+      "text": "Scaffolds a pull_request workflow at .github/workflows/doc-sweep-docs.yml that runs the vendored check script with checkout fetch-depth:0",
+      "passed": true,
+      "evidence": "workflow has on:pull_request, actions/checkout@v6 fetch-depth:0, and run: bash .github/doc-sweep/docs-ci-check.sh .github/doc-sweep/docs-ci.json"
+    },
+    {
+      "eval_id": 1,
+      "text": "Prints a structured summary listing the workflow/script/config paths, the doc-file set, the [skip docs] token, the branch-protection note, and how to edit/uninstall",
+      "passed": true,
+      "evidence": "step-6 summary listed workflow/script/config paths, doc-file set=default, [skip docs] token, required-status-check note, and re-run /doc-sweep:install-docs-ci"
+    },
+    {
+      "eval_id": 1,
+      "text": "Does not scaffold anything until the user confirms",
+      "passed": true,
+      "evidence": "SKILL.md gates scaffolding on confirmation ('Nothing is installed until you run this and confirm'); scope collected via AskUserQuestion before any copy/write; detection step is read-only"
+    },
+    {
+      "eval_id": 1,
+      "text": "Re-running the install does not duplicate the workflow (idempotent)",
+      "passed": true,
+      "evidence": "Ran full install a SECOND time: exactly 1 workflow file and grep -c 'docs-staleness:' = 1 both times; rewrite-in-place, no duplicate"
+    },
+    {
+      "eval_id": 2,
+      "text": "Deletes the scaffolded workflow .github/workflows/doc-sweep-docs.yml",
+      "passed": true,
+      "evidence": "BEFORE find listed the workflow; Uninstall rm -f executed; AFTER only the unrelated other.yml remained"
+    },
+    {
+      "eval_id": 2,
+      "text": "Deletes the vendored check script and the docs-ci.json config under .github/doc-sweep/",
+      "passed": true,
+      "evidence": "Both .github/doc-sweep/docs-ci-check.sh and docs-ci.json rm -f'd; now-empty .github/doc-sweep/ rmdir'd; no doc-sweep files remain"
+    },
+    {
+      "eval_id": 2,
+      "text": "Leaves unrelated workflows and files untouched",
+      "passed": true,
+      "evidence": "AFTER: .github/workflows/other.yml still present; unrelated README.md and src.txt still exist; only the three doc-sweep artifacts removed"
+    },
+    {
+      "eval_id": 2,
+      "text": "Confirms what was removed (workflow, script, config paths)",
+      "passed": true,
+      "evidence": "SKILL.md Uninstall section directs confirming the three removed paths (workflow, script, config), all verified deleted"
+    },
+    {
+      "eval_id": 3,
+      "text": "Detects the existing install and offers Reconfigure / Uninstall / Cancel rather than a blind fresh install",
+      "passed": true,
+      "evidence": "Detection keyed off existing doc-sweep-docs.yml + vendored script; on hit routes to AskUserQuestion with exactly Reconfigure/Uninstall/Cancel; fresh-install path skipped"
+    },
+    {
+      "eval_id": 3,
+      "text": "On Reconfigure, rewrites the docs-ci.json config with docMode:\"minimal\" while preserving the other choices",
+      "passed": true,
+      "evidence": "Before {docMode:default, excludeDirs:[vendor]} -> After {docMode:minimal, excludeDirs:[vendor]}; docMode switched, excludeDirs preserved verbatim"
+    },
+    {
+      "eval_id": 3,
+      "text": "Leaves the workflow file in place (rewrites it only if its path or name changed)",
+      "passed": true,
+      "evidence": "Path/name unchanged; git diff --stat of the workflow produced no output; git status --porcelain showed only the config modified"
+    },
+    {
+      "eval_id": 4,
+      "text": "Scans for likely-vendored directories (submodules, non-root package manifests, known vendor names) and presents candidates for confirmation",
+      "passed": true,
+      "evidence": "All three signals fired: .gitmodules -> external/dep; non-root package.json -> frontend (root excluded); known names -> vendor; candidate set {external/dep, frontend, vendor} presented"
+    },
+    {
+      "eval_id": 4,
+      "text": "Records the confirmed excludeDirs list into the .github/doc-sweep/docs-ci.json config",
+      "passed": true,
+      "evidence": "docs-ci.json excludeDirs=[external/dep, frontend, vendor]; functionally verified — PRs touching only those exited 0, an unexcluded src.js exited 1"
+    },
+    {
+      "eval_id": 4,
+      "text": "Reads an existing excludeDirs list from .claude/context/audience-rules.md if one is already present rather than re-prompting",
+      "passed": true,
+      "evidence": "Pre-created audience-rules.md with excludeDirs list; skill read the three entries verbatim into docs-ci.json with no scan/re-prompt path"
+    }
+  ]
+}

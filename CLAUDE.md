@@ -18,13 +18,22 @@ self-contained under `plugins/`.
 - `doc-sweep`'s `init-audience-rules` skill is **`disable-model-invocation: true` on purpose**
   (manual-only `/`-command): auto-invocation over-triggers on ordinary CLAUDE.md-vs-README doc
   talk. Don't remove it — `revise-docs`/`audit-docs` stay model-invocable.
-- This repo also dogfoods doc-sweep's **revise-docs push guard** (project scope): a `PreToolUse`
-  Bash matcher in `.claude/settings.json` runs `.claude/hooks/doc-sweep-revise-push.sh` (config
-  `doc-sweep-revise.json`: `trigger=push`, `repoScope=doc-sweep-only`, `docMode=default`) and
-  **blocks a Claude-driven `git push`** when a non-doc file changed since docs were last reviewed.
-  Clear it by running `/doc-sweep:revise-docs-and-mark` (advances the per-clone marker at
-  `$(git rev-parse --git-common-dir)/doc-sweep-revise-marker`, not committed). One-shot bypass:
-  `DOC_SWEEP_REVISE_SKIP=1` or `--no-verify`. Reconfigure/uninstall via `/doc-sweep:install-revise-hook`.
+- This repo dogfoods doc-sweep's **docs-staleness CI check** (the primary docs guard):
+  `.github/workflows/docs-staleness.yml` runs `plugins/doc-sweep/hooks/docs-ci-check.sh` on every
+  PR and **fails** when a non-doc file changed but no docs did — unless a **`[skip docs]`** token
+  (mirrors `[skip ci]`) appears in a commit message or the PR body. Deterministic (no secrets, no
+  Anthropic auth — same stance as `validate.yml`). It is currently **advisory** (not a required
+  status check) while we live with it. Baseline is the PR merge base (no marker). Ship/scaffold it
+  into another repo via `/doc-sweep:install-docs-ci` (vendors the script under `.github/doc-sweep/`).
+  It catches what the local hook can't: human commits, contributors without doc-sweep, and fork PRs.
+- The local **revise-docs push guard** (`revise-push-guard.sh`, installed via
+  `/doc-sweep:install-revise-hook`) remains a shipped doc-sweep capability — an optional *pre-push*
+  fast-feedback loop that gates only Claude-driven pushes in one clone, and honors the same
+  `[skip docs]` token (every non-doc commit in the marker range must carry it). **funbox no longer
+  installs it** — CI is the primary guard here. Whether to **retire the hook entirely is a deferred
+  decision**: revisit once the CI check has proven itself; don't delete the hook without that call
+  (re-deriving it + its tests is real work). One-shot local bypass stays `DOC_SWEEP_REVISE_SKIP=1`
+  or `--no-verify`.
 
 ## Versioning — read before touching a version
 

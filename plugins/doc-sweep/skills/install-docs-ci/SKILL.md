@@ -36,12 +36,16 @@ hook recognizes, so the two guards share one vocabulary.
 
 1. **Detect an existing install.** Look for the scaffolded workflow at
    `${CLAUDE_PROJECT_DIR}/.github/workflows/doc-sweep-docs.yml` (and the vendored script at
-   `.github/doc-sweep/docs-ci-check.sh`).
+   `.github/doc-sweep/docs-ci-check.sh` plus its classifier at
+   `.github/doc-sweep/doc-classify.mjs` — both files, not just the script, are part of what
+   constitutes an install).
 
    - If **no install** is found → proceed to step 2 (fresh install).
    - If an install **is found**, offer three choices via `AskUserQuestion`:
      - **Reconfigure** — re-ask the choices in step 2 pre-filled from the existing
-       `.github/doc-sweep/docs-ci.json`; rewrite that config and re-copy the script; leave the
+       `.github/doc-sweep/docs-ci.json`; rewrite that config, re-copy the script, and
+       unconditionally re-copy `doc-classify.mjs` alongside it (idempotent — this self-heals a
+       missing or stale classifier even when nothing else about the install changed); leave the
        workflow file in place (rewrite it only if its path/name changed); print the summary
        (step 6). Stop.
      - **Uninstall** — follow the Uninstall section below. Stop.
@@ -49,10 +53,15 @@ hook recognizes, so the two guards share one vocabulary.
 
 2. **Collect scope (AskUserQuestion).** Ask both in one prompt, with defaults called out:
 
-   - **Doc-file set** — `default` (CLAUDE*.md, README*.md, CHANGELOG.md, docs/**, .claude/**/*.md),
+   - **Doc-file set** — `default` (matches `doc-classify.mjs`'s built-in list: `CLAUDE*.md`,
+     `README*.md`, `CHANGELOG.md`, files under `docs/`, and any `.md` under `.claude/`),
      `with-skill` (also treats SKILL.md as a doc), or `minimal` (CLAUDE.md + README.md only).
-     Recommend `default`. Recorded as a `docPatterns` glob list (the `default` choice matches the
-     list documented in `context/audience-rules.md`; identical meaning to the push-guard config).
+     Recommend `default`. If the user picks `default`, do **not** transcribe this parenthetical
+     into a `docPatterns` list — omit `docPatterns` from the config JSON entirely (step 4) so
+     `doc-classify.mjs`'s own built-in default (documented in `context/audience-rules.md`)
+     applies. If the user picks `with-skill` or `minimal` (a custom set), record the concrete
+     glob list as `docPatterns` and persist it into `.claude/context/audience-rules.md` the same
+     way `excludeDirs` is persisted (step 4).
    - **Excluded directories** — confirm the vendored/generated dirs whose changes should be
      ignored (neither doc nor non-doc). Recorded as `excludeDirs`.
 
@@ -77,13 +86,22 @@ hook recognizes, so the two guards share one vocabulary.
      `${CLAUDE_PROJECT_DIR}/.github/doc-sweep/doc-classify.mjs` — the **same directory** as the
      script above, since `docs-ci-check.sh` resolves the classifier next to itself
      (`$here/doc-classify.mjs`). Without it the check fails open (passes) on every PR.
+   - If the user chose a **custom** doc-file set in step 2 (`with-skill` or `minimal`), persist
+     the chosen `docPatterns` glob list into `.claude/context/audience-rules.md` the same way
+     `excludeDirs` is persisted: append a `docPatterns:` block if the file exists and doesn't
+     already have one, update it in place if it does, or create the file with a brief header
+     comment if it doesn't exist yet. If the user kept the **default**, leave `audience-rules.md`
+     untouched for `docPatterns`.
    - Write `${CLAUDE_PROJECT_DIR}/.github/doc-sweep/docs-ci.json`:
-     ```json
-     { "docPatterns": [<chosen>], "excludeDirs": [<confirmed>] }
-     ```
-     `<chosen>` is the glob list for the selected doc-file set (`default`, `with-skill`, or
-     `minimal` — see step 2); omit the key (or pass an empty array) to fall back to
-     `doc-classify.mjs`'s own built-in default list.
+     - Default doc-file set — omit `docPatterns` entirely:
+       ```json
+       { "excludeDirs": [<confirmed>] }
+       ```
+     - Custom doc-file set (`with-skill` or `minimal`) — include the concrete glob list,
+       mirroring what was just persisted to `audience-rules.md`:
+       ```json
+       { "docPatterns": [<chosen>], "excludeDirs": [<confirmed>] }
+       ```
 
 5. **Scaffold the workflow (idempotent).** Write
    `${CLAUDE_PROJECT_DIR}/.github/workflows/doc-sweep-docs.yml` (do not overwrite an unrelated
@@ -122,7 +140,7 @@ hook recognizes, so the two guards share one vocabulary.
    Check script  : <abs path to .github/doc-sweep/docs-ci-check.sh>
    Classifier    : <abs path to .github/doc-sweep/doc-classify.mjs>
    Config file   : <abs path to .github/doc-sweep/docs-ci.json>
-   Doc-file set  : <default|with-skill|minimal> (docPatterns: <glob list>)
+   Doc-file set  : <default|with-skill|minimal> (docPatterns: <glob list, or "(built-in default)">)
    Excluded dirs : <comma-separated list, or "(none)">
    Ack token     : [skip docs]  (in a commit message or the PR description)
 

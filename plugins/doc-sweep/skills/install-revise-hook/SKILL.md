@@ -28,17 +28,21 @@ parse the event JSON.
 
 1. **Detect an existing install.** Look for a `revise-push-guard` entry in the user
    (`~/.claude/settings.json`) and project (`${CLAUDE_PROJECT_DIR}/.claude/settings.json`)
-   hooks by scanning for any `command` value that contains `doc-sweep-revise-push.sh`.
+   hooks by scanning for any `command` value that contains `doc-sweep-revise-push.sh` (the
+   copied hook script and the `doc-classify.mjs` copied next to it are both part of what
+   constitutes an install).
 
    - If **no install** is found → proceed to step 2 (fresh install).
    - If an install **is found**, offer three choices via `AskUserQuestion`:
      - **Reconfigure** — re-ask all choices from step 2 pre-filled with the values read from
-       the existing config JSON; then rewrite the config; re-copy the hook script and
-       `doc-classify.mjs` only if the target path changed; if and only if the hook target path
-       or settings location changed, remove the old `PreToolUse` matcher entry (the one whose
-       `command` references the old hook path/file) and add a new one pointing to the updated
-       paths — otherwise leave the matcher as-is; leave the review marker file untouched; print
-       the structured summary (step 8). Stop.
+       the existing config JSON; then rewrite the config; re-copy the hook script only if the
+       target path changed, but unconditionally re-copy `doc-classify.mjs` into that (possibly
+       unchanged) directory regardless of whether the path changed (idempotent — this self-heals
+       a missing or stale classifier even when the hook path itself is unchanged); if and only if
+       the hook target path or settings location changed, remove the old `PreToolUse` matcher
+       entry (the one whose `command` references the old hook path/file) and add a new one
+       pointing to the updated paths — otherwise leave the matcher as-is; leave the review marker
+       file untouched; print the structured summary (step 8). Stop.
      - **Uninstall** — follow the Uninstall section below. Stop.
      - **Cancel** — do nothing and exit. Stop.
 
@@ -51,10 +55,15 @@ parse the event JSON.
    - **Repo applicability** — `all` (guard fires in every repo) vs `doc-sweep-only` (the hook
      self-skips repos without a `CLAUDE.md` or `.claude/context/audience-rules.md`). Recommend
      `doc-sweep-only` for user-global installs.
-   - **Doc-file set** — `default` (CLAUDE*.md, README*.md, CHANGELOG.md, docs/**, .claude/**/*.md),
+   - **Doc-file set** — `default` (matches `doc-classify.mjs`'s built-in list: `CLAUDE*.md`,
+     `README*.md`, `CHANGELOG.md`, files under `docs/`, and any `.md` under `.claude/`),
      `with-skill` (also treats SKILL.md as a doc), or `minimal` (CLAUDE.md + README.md only).
-     Recommend `default`. Recorded as a `docPatterns` glob list (the `default` choice matches the
-     list documented in `context/audience-rules.md`; identical meaning to the CI-check config).
+     Recommend `default`. If the user picks `default`, do **not** transcribe this parenthetical
+     into a `docPatterns` list — omit `docPatterns` from the config JSON entirely (step 5) so
+     `doc-classify.mjs`'s own built-in default (documented in `context/audience-rules.md`)
+     applies. If the user picks `with-skill` or `minimal` (a custom set), record the concrete
+     glob list as `docPatterns` and persist it into `.claude/context/audience-rules.md` the same
+     way `excludeDirs` is persisted (step 4).
    - **Trigger event** — exactly one of: `push` (recommended; one prompt per share) or
      `commit` (stricter; prompts on nearly every commit). Record as `trigger` in the config.
    - **Bypass + uninstall** — confirm the bypass tokens (`DOC_SWEEP_REVISE_SKIP=1` or
@@ -105,14 +114,23 @@ parse the event JSON.
         - third_party
       ```
 
+   d. If the user chose a **custom** doc-file set in step 2 (`with-skill` or `minimal`), persist
+      the chosen glob list as a `docPatterns:` block in `.claude/context/audience-rules.md` the
+      same way: append the block if the file exists and doesn't already have one, update it in
+      place if it does, or create the file with a brief header comment if it doesn't exist yet.
+      If the user kept the **default**, do not write a `docPatterns:` block here.
+
 5. **Write the config** next to the copied hook as `doc-sweep-revise.json`:
-   ```json
-   { "docPatterns": [<chosen>], "repoScope": "<chosen>", "trigger": "<chosen>", "excludeDirs": [<confirmed>] }
-   ```
-   `<chosen>` is the glob list for the selected doc-file set (`default`, `with-skill`, or
-   `minimal` — see step 2); omit the key (or pass an empty array) to fall back to
-   `doc-classify.mjs`'s own built-in default list. The `excludeDirs` array must match the list
-   persisted in step 4.
+   - Default doc-file set — omit `docPatterns` entirely:
+     ```json
+     { "repoScope": "<chosen>", "trigger": "<chosen>", "excludeDirs": [<confirmed>] }
+     ```
+   - Custom doc-file set (`with-skill` or `minimal`) — include the concrete glob list,
+     mirroring what was persisted to `audience-rules.md` in step 4d:
+     ```json
+     { "docPatterns": [<chosen>], "repoScope": "<chosen>", "trigger": "<chosen>", "excludeDirs": [<confirmed>] }
+     ```
+   The `excludeDirs` array must match the list persisted in step 4.
 
 6. **Merge the hook into settings.json (idempotent).** Read the chosen settings.json
    (create `{}` if absent). Under `.hooks.PreToolUse`, append (do not overwrite) one
@@ -150,7 +168,7 @@ parse the event JSON.
    Classifier    : <abs path to doc-classify.mjs (same directory as the hook script)>
    Config file   : <abs path to doc-sweep-revise.json>
    Trigger       : <push|commit>
-   Doc-file set  : <default|with-skill|minimal> (docPatterns: <glob list>)
+   Doc-file set  : <default|with-skill|minimal> (docPatterns: <glob list, or "(built-in default)">)
    Repo scope    : <all|doc-sweep-only>
    Excluded dirs : <comma-separated list, or "(none)">
    Marker state  : <seeded at <SHA> (assumption) | seeded by revise-docs-and-mark | unseeded (next gated action will block)>

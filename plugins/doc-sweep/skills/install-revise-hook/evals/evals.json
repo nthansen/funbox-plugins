@@ -33,7 +33,8 @@
         "Detects the existing install and offers Reconfigure / Uninstall / Cancel rather than doing a blind fresh install",
         "On Reconfigure, rewrites the config JSON with the new trigger while preserving the other choices",
         "Leaves the review marker file untouched during reconfigure (does not re-seed it)",
-        "Updates the settings.json matcher only if the hook path or settings location changed"
+        "Updates the settings.json matcher only if the hook path or settings location changed",
+        "On Reconfigure, unconditionally re-copies doc-classify.mjs next to the hook script (self-heals a missing or stale classifier) even when the hook path itself is unchanged and the hook script is not re-copied"
       ],
       "files": []
     },

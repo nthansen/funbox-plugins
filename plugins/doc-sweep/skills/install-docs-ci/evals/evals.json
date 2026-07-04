@@ -32,7 +32,8 @@
       "assertions": [
         "Detects the existing install and offers Reconfigure / Uninstall / Cancel rather than a blind fresh install",
         "On Reconfigure, rewrites the docs-ci.json config with docPatterns set to the minimal glob list (e.g. CLAUDE*.md and README*.md only) while preserving the other choices",
-        "Leaves the workflow file in place (rewrites it only if its path or name changed)"
+        "Leaves the workflow file in place (rewrites it only if its path or name changed)",
+        "On Reconfigure, unconditionally re-copies doc-classify.mjs alongside docs-ci-check.sh into .github/doc-sweep/ (self-heals a missing or stale classifier) even though the workflow file itself is left in place"
       ],
       "files": []
     },

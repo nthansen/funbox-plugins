@@ -17,6 +17,6 @@
 
 ## 4. Validation + adversarial review
 
-- [ ] 4.1 Run `node scripts/validate-marketplace.mjs`, `claude plugin validate plugins/doc-sweep`, `openspec validate --strict --all`, `node scripts/check-openspec-hygiene.mjs`; fix findings.
-- [ ] 4.2 Adversarial review of the installer SKILL.md changes (edge cases: add-extras dedupe with built-in globs; reconfigure preserving exemptPatterns; interaction with the docPatterns choice); fix any Critical/Important.
+- [x] 4.1 Run `node scripts/validate-marketplace.mjs`, `claude plugin validate plugins/doc-sweep`, `openspec validate --strict --all`, `node scripts/check-openspec-hygiene.mjs`; fix findings.
+- [x] 4.2 Adversarial review of the installer SKILL.md changes (edge cases: add-extras dedupe with built-in globs; reconfigure preserving exemptPatterns; interaction with the docPatterns choice); fix any Critical/Important.
 - [ ] 4.3 Archive the change with `openspec archive` and fill any seeded spec Purpose (n/a — no new capability).

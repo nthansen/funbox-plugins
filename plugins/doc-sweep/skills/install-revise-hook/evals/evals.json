@@ -11,7 +11,8 @@
         "Merges a PreToolUse matcher:Bash hook entry into the project settings.json referencing the copied hook + config, preserving any existing settings",
         "Offers to seed the review marker on this fresh install (seed-now / review-now / leave) rather than silently leaving it unset",
         "Prints a structured summary listing the settings/hook/classifier/config paths, the trigger, marker state, bypass tokens, and how to edit/uninstall",
-        "Re-running the install does not duplicate the hook entry (idempotent)"
+        "Re-running the install does not duplicate the hook entry (idempotent)",
+        "For the default exempt-set choice, omits exemptPatterns from the config JSON so the classifier's built-in test globs apply"
       ],
       "files": []
     },
@@ -45,6 +46,16 @@
         "Scans for likely-vendored directories (submodules, non-root package manifests, known vendor names) and presents candidates for confirmation",
         "Persists the confirmed excludeDirs list into .claude/context/audience-rules.md",
         "Mirrors the same excludeDirs into the hook config JSON written next to the hook"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Install the revise-docs guard for this project, and also exempt the package-lock.json lockfile from requiring docs.",
+      "assertions": [
+        "Records exemptPatterns in doc-sweep-revise.json as the built-in default test globs (e.g. **/*.test.*, **/tests/**) FOLLOWED BY the user's addition (package-lock.json), rather than replacing the tests with only the addition",
+        "Persists the same exemptPatterns list into .claude/context/audience-rules.md, the same way docPatterns/excludeDirs are persisted",
+        "Functionally, with that config, the hook treats a package-lock.json-only change (or a test-only change) as not requiring docs while a src-code change still blocks"
       ],
       "files": []
     }

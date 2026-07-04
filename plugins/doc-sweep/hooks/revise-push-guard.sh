@@ -26,14 +26,13 @@ tool="$(getfield tool_name)" || allow
 cmd="$(getfield tool_input.command)" || allow
 cwd="$(getfield cwd)" || allow
 
-# Config (optional) via node — trigger and excludeDirs.
-docmode="default"; reposcope="all"; trigger="push"; excludes=""
+# Config (optional) via node — trigger and repoScope. excludeDirs/docPatterns/exemptPatterns
+# flow to doc-classify.mjs directly via --config (see $cfg below); this hook never reads them.
+reposcope="all"; trigger="push"
 cfg="${1:-}"
 if [ -n "$cfg" ] && [ -f "$cfg" ]; then
-  docmode="$(node -e 'try{process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).docMode||"default")}catch(e){process.stdout.write("default")}' "$cfg" 2>/dev/null || echo default)"
   reposcope="$(node -e 'try{process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).repoScope||"all")}catch(e){process.stdout.write("all")}' "$cfg" 2>/dev/null || echo all)"
   trigger="$(node -e 'try{process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).trigger||"push")}catch(e){process.stdout.write("push")}' "$cfg" 2>/dev/null || echo push)"
-  excludes="$(node -e 'try{const a=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).excludeDirs;process.stdout.write(Array.isArray(a)?a.join("\n"):"")}catch(e){}' "$cfg" 2>/dev/null || echo)"
 fi
 
 # Only gate the configured trigger subcommand (push by default).
@@ -75,37 +74,12 @@ fi
 changed="$(git diff --name-only "$range" 2>/dev/null)" || allow
 [ -n "$changed" ] || allow   # nothing new since marker
 
-is_doc(){ # $1 = path; doc per $docmode
-  case "$docmode" in
-    minimal)
-      case "$1" in CLAUDE.md|*/CLAUDE.md|README.md|*/README.md) return 0;; esac ;;
-    with-skill)
-      case "$1" in SKILL.md|*/SKILL.md) return 0;; esac
-      case "$1" in CLAUDE*.md|*/CLAUDE*.md|README*.md|*/README*.md|CHANGELOG.md|*/CHANGELOG.md|docs/*|*/docs/*) return 0;; esac ;;
-    *) # default
-      case "$1" in CLAUDE*.md|*/CLAUDE*.md|README*.md|*/README*.md|CHANGELOG.md|*/CHANGELOG.md|docs/*|*/docs/*) return 0;; esac ;;
-  esac
-  return 1
-}
+# Classify via the shared module (delegates docPatterns/excludeDirs/exemptPatterns).
+here="$(cd "$(dirname "$0")" && pwd)"
+cfg_arg=(); [ -n "$cfg" ] && [ -f "$cfg" ] && cfg_arg=(--config "$cfg")
 
-nondoc=""
-while IFS= read -r f; do
-  [ -n "$f" ] || continue
-  skip=0
-  if [ -n "$excludes" ]; then
-    while IFS= read -r ex; do
-      [ -n "$ex" ] || continue
-      case "$f" in "$ex"/*|"$ex") skip=1; break;; esac
-    done <<EX
-$excludes
-EX
-  fi
-  [ "$skip" = 1 ] && continue
-  # shellcheck disable=SC2086
-  is_doc "$f" || nondoc="$nondoc $f"
-done <<EOF
-$changed
-EOF
+result="$(printf '%s\n' "$changed" | node "$here/doc-classify.mjs" "${cfg_arg[@]}" 2>/dev/null)" || result=""
+nondoc="$(printf '%s' "$result" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const o=JSON.parse(s);process.stdout.write((o.nonDoc||[]).join(" "))}catch(e){process.stdout.write("")}})' 2>/dev/null)" || nondoc=""
 
 has_skip(){ # $1 = commit sha; true if its message carries the shared [skip docs] token
   git log -1 --format=%B "$1" 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{process.exit(/\[skip docs\]/i.test(s)?0:1)})' 2>/dev/null
@@ -120,23 +94,10 @@ if [ -n "$nondoc" ]; then
   while IFS= read -r c; do
     [ -n "$c" ] || continue
     has_skip "$c" && continue   # this commit is acknowledged
-    while IFS= read -r f; do
-      [ -n "$f" ] || continue
-      skip=0
-      if [ -n "$excludes" ]; then
-        while IFS= read -r ex; do
-          [ -n "$ex" ] || continue
-          case "$f" in "$ex"/*|"$ex") skip=1; break;; esac
-        done <<EX
-$excludes
-EX
-      fi
-      [ "$skip" = 1 ] && continue
-      if ! is_doc "$f"; then unacked=1; break; fi
-    done <<CF
-$(git diff-tree --no-commit-id --name-only -r "$c" 2>/dev/null)
-CF
-    [ "$unacked" = 1 ] && break
+    cfiles="$(git diff-tree --no-commit-id --name-only -r "$c" 2>/dev/null)"
+    cresult="$(printf '%s\n' "$cfiles" | node "$here/doc-classify.mjs" "${cfg_arg[@]}" 2>/dev/null)" || cresult=""
+    cnon="$(printf '%s' "$cresult" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const o=JSON.parse(s);process.stdout.write((o.nonDoc||[]).join("\n"))}catch(e){process.stdout.write("")}})' 2>/dev/null)" || cnon=""
+    [ -n "$cnon" ] && { unacked=1; break; }
   done <<CL
 $(git rev-list "$range" 2>/dev/null)
 CL

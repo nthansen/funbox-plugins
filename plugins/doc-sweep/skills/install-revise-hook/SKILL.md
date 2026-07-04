@@ -43,6 +43,13 @@ parse the event JSON.
        entry (the one whose `command` references the old hook path/file) and add a new one
        pointing to the updated paths — otherwise leave the matcher as-is; leave the review marker
        file untouched; print the structured summary (step 8). Stop.
+
+       **Preserve `exemptPatterns` across reconfigure.** If the existing config has a non-default
+       `exemptPatterns`, treat the pre-filled exempt choice as `add-extras`, with the user's
+       additions equal to the stored list minus the 7 built-in globs. If the exempt choice isn't
+       changed in this reconfigure, rewrite `exemptPatterns` unchanged (verify it still starts with
+       all 7 built-ins before writing). Only omit `exemptPatterns` from the rewritten config if the
+       user explicitly switches the exempt choice back to `default`.
      - **Uninstall** — follow the Uninstall section below. Stop.
      - **Cancel** — do nothing and exit. Stop.
 
@@ -68,9 +75,17 @@ parse the event JSON.
      globs). Offer `default` (omit `exemptPatterns` so the classifier's built-in test globs apply)
      or `add-extras` (the user names additional globs to exempt, e.g. a lockfile like
      `package-lock.json` or a generated dir like `gen/**`). Recommend `default`. On `add-extras`,
-     the recorded `exemptPatterns` is the built-in default test globs (from
-     `context/audience-rules.md`) **followed by** the user's additions, so the tests stay exempt
-     without being re-typed.
+     the recorded `exemptPatterns` is **this skill's bundled** `../../context/audience-rules.md`
+     (the plugin's own copy — explicitly **not** the project's `.claude/context/audience-rules.md`,
+     which may have no `exemptPatterns` block in a fresh repo) built-in default test globs,
+     enumerated here as the authoritative list and kept in sync with `doc-classify.mjs`'s
+     `DEFAULT_EXEMPT_PATTERNS`:
+     `**/*.test.*`, `**/*.spec.*`, `**/test/**`, `**/tests/**`, `**/__tests__/**`, `**/*_test.go`,
+     `**/*_test.py`
+     — **followed by** the user's additions, so the tests stay exempt without being re-typed.
+     Before writing `exemptPatterns` anywhere (config JSON or `audience-rules.md`), verify the
+     list starts with all 7 built-ins in that order; if it doesn't, stop and fix it — never write a
+     list missing them.
    - **Trigger event** — exactly one of: `push` (recommended; one prompt per share) or
      `commit` (stricter; prompts on nearly every commit). Record as `trigger` in the config.
    - **Bypass + uninstall** — confirm the bypass tokens (`DOC_SWEEP_REVISE_SKIP=1` or
@@ -128,9 +143,11 @@ parse the event JSON.
       If the user kept the **default**, do not write a `docPatterns:` block here.
 
    e. If the user chose **add-extras** for the exempt set in step 2, persist an `exemptPatterns:`
-      block (the built-in default test globs from `context/audience-rules.md` followed by the
-      user's additions) the same way. If the user kept the **default** exempt set, do not write an
-      `exemptPatterns:` block here.
+      block holding, in order, the 7 built-in globs listed in step 2 (sourced from **this skill's
+      bundled** `../../context/audience-rules.md`, not the project's copy) followed by the user's
+      additions, the same way. Before writing, verify the list starts with all 7 built-ins — if it
+      doesn't, stop and fix it rather than writing an incomplete list. If the user kept the
+      **default** exempt set, do not write an `exemptPatterns:` block here.
 
 5. **Write the config** next to the copied hook as `doc-sweep-revise.json`. Include `docPatterns`
    only for a custom doc-file set, and `exemptPatterns` only for an add-extras exempt set; a default

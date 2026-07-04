@@ -140,7 +140,7 @@ Nothing is installed automatically. To set it up, run:
 /doc-sweep:install-revise-hook
 ```
 
-The installer is interactive and asks you four questions before writing anything:
+The installer is interactive and asks you five questions before writing anything:
 
 1. **Settings location** — user-global (`~/.claude/settings.json`, guards every repo where
    Claude pushes) or project-local (`.claude/settings.json` in the current repo only).

@@ -34,9 +34,15 @@
         "Detects the existing install and offers Reconfigure / Uninstall / Cancel rather than a blind fresh install",
         "On Reconfigure, rewrites the docs-ci.json config with docPatterns set to the minimal glob list (e.g. CLAUDE*.md and README*.md only) while preserving the other choices",
         "Leaves the workflow file in place (rewrites it only if its path or name changed)",
-        "On Reconfigure, unconditionally re-copies doc-classify.mjs alongside docs-ci-check.sh into .github/doc-sweep/ (self-heals a missing or stale classifier) even though the workflow file itself is left in place"
+        "On Reconfigure, unconditionally re-copies doc-classify.mjs alongside docs-ci-check.sh into .github/doc-sweep/ (self-heals a missing or stale classifier) even though the workflow file itself is left in place",
+        "The existing docs-ci.json fixture carries an exemptPatterns of the 7 built-in test globs plus one addition (e.g. package-lock.json); since this reconfigure only changes the doc-file set (not the exempt choice), the rewritten docs-ci.json preserves that exemptPatterns list unchanged, still starting with all 7 built-ins"
       ],
-      "files": []
+      "files": [
+        {
+          "path": ".github/doc-sweep/docs-ci.json",
+          "content": "{ \"exemptPatterns\": [\"**/*.test.*\", \"**/*.spec.*\", \"**/test/**\", \"**/tests/**\", \"**/__tests__/**\", \"**/*_test.go\", \"**/*_test.py\", \"package-lock.json\"], \"excludeDirs\": [] }"
+        }
+      ]
     },
     {
       "id": 4,

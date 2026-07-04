@@ -48,6 +48,13 @@ hook recognizes, so the two guards share one vocabulary.
        missing or stale classifier even when nothing else about the install changed); leave the
        workflow file in place (rewrite it only if its path/name changed); print the summary
        (step 6). Stop.
+
+       **Preserve `exemptPatterns` across reconfigure.** If the existing config has a non-default
+       `exemptPatterns`, treat the pre-filled exempt choice as `add-extras`, with the user's
+       additions equal to the stored list minus the 7 built-in globs. If the exempt choice isn't
+       changed in this reconfigure, rewrite `exemptPatterns` unchanged (verify it still starts with
+       all 7 built-ins before writing). Only omit `exemptPatterns` from the rewritten config if the
+       user explicitly switches the exempt choice back to `default`.
      - **Uninstall** — follow the Uninstall section below. Stop.
      - **Cancel** — do nothing and exit. Stop.
 
@@ -68,9 +75,17 @@ hook recognizes, so the two guards share one vocabulary.
      globs). Offer `default` (keep only the built-in test globs — omit `exemptPatterns` so the
      classifier's built-in default applies) or `add-extras` (the user names additional globs to
      exempt, e.g. a lockfile like `package-lock.json` or a generated dir like `gen/**`). Recommend
-     `default`. On `add-extras`, the recorded `exemptPatterns` is the built-in default test globs
-     (from `context/audience-rules.md`) **followed by** the user's additions, so the tests stay
-     exempt without being re-typed.
+     `default`. On `add-extras`, the recorded `exemptPatterns` is **this skill's bundled**
+     `../../context/audience-rules.md` (the plugin's own copy — explicitly **not** the project's
+     `.claude/context/audience-rules.md`, which may have no `exemptPatterns` block in a fresh repo)
+     built-in default test globs, enumerated here as the authoritative list and kept in sync with
+     `doc-classify.mjs`'s `DEFAULT_EXEMPT_PATTERNS`:
+     `**/*.test.*`, `**/*.spec.*`, `**/test/**`, `**/tests/**`, `**/__tests__/**`, `**/*_test.go`,
+     `**/*_test.py`
+     — **followed by** the user's additions, so the tests stay exempt without being re-typed.
+     Before writing `exemptPatterns` anywhere (config JSON or `audience-rules.md`), verify the
+     list starts with all 7 built-ins in that order; if it doesn't, stop and fix it — never write a
+     list missing them.
 
 3. **Scan for vendored directories and resolve `excludeDirs`.**
 
@@ -97,8 +112,11 @@ hook recognizes, so the two guards share one vocabulary.
      `excludeDirs` is persisted (append the block if absent, update in place if present, or create
      the file with a brief header comment if it doesn't exist yet):
      - a **custom** doc-file set (`with-skill` or `minimal`) → a `docPatterns:` block;
-     - an **add-extras** exempt set → an `exemptPatterns:` block holding the built-in default test
-       globs followed by the user's additions.
+     - an **add-extras** exempt set → an `exemptPatterns:` block holding, in order, the 7 built-in
+       globs listed in step 2 (sourced from **this skill's bundled**
+       `../../context/audience-rules.md`, not the project's copy) followed by the user's
+       additions. Before writing, verify the list starts with all 7 built-ins — if it doesn't, stop
+       and fix it rather than writing an incomplete list.
      If the user kept the **default** for a given axis, leave `audience-rules.md` untouched for that
      key.
    - Write `${CLAUDE_PROJECT_DIR}/.github/doc-sweep/docs-ci.json`. Include a key **only** when the

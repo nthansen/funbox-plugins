@@ -37,3 +37,5 @@ per-install config JSON, like `excludeDirs`):
       - "**/test/**"
       - "**/tests/**"
       - "**/__tests__/**"
+      - "**/*_test.go"
+      - "**/*_test.py"

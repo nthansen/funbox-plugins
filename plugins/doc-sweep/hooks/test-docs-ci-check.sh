@@ -55,9 +55,21 @@ run "$base" "$repo"; assert_pass $? "no changes passes"
 repo="$(mkrepo)"; commitfile "$repo" src/app.js
 run "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef" "$repo"; assert_pass $? "unresolvable base fails open"
 
-# 11. minimal docMode: CHANGELOG counts as non-doc → fail
+# 11. custom docPatterns config: CHANGELOG no longer in the doc set → fail
 repo="$(mkrepo)"; base="$(basesha "$repo")"; commitfile "$repo" CHANGELOG.md
-cfg="$(mktemp)"; echo '{"docMode":"minimal"}' > "$cfg"
-run "$base" "$repo" "" "$cfg"; assert_fail $? "minimal docMode: CHANGELOG is non-doc"
+cfg="$(mktemp)"; echo '{"docPatterns":["**/CLAUDE*.md","**/README*.md"]}' > "$cfg"
+run "$base" "$repo" "" "$cfg"; assert_fail $? "custom docPatterns: CHANGELOG is non-doc"
+
+# .claude markdown counts as a doc (regression: was misclassified non-doc)
+repo="$(mkrepo)"; base="$(basesha "$repo")"; commitfile "$repo" src/app.js; commitfile "$repo" .claude/context/audience-rules.md
+run "$base" "$repo"; assert_pass $? ".claude/*.md change satisfies the check"
+
+# test-only change is exempt → passes without an ack
+repo="$(mkrepo)"; base="$(basesha "$repo")"; commitfile "$repo" src/app.test.js
+run "$base" "$repo"; assert_pass $? "test-only change passes (exempt)"
+
+# tests + real code still enforces
+repo="$(mkrepo)"; base="$(basesha "$repo")"; commitfile "$repo" src/app.test.js; commitfile "$repo" src/app.js
+run "$base" "$repo"; assert_fail $? "tests + src still enforces"
 
 exit $fail

@@ -106,4 +106,42 @@ out="$(run 'git push' "$repo" "$no_cfg")"; assert_allow "$out" ".claude/*.md cha
 repo="$(mkrepo)"; mark "$repo"; commitfile "$repo" src/app.test.js
 out="$(run 'git push' "$repo" "$no_cfg")"; assert_allow "$out" "test-only change allows push (exempt)"
 
+# --- Finding 1 regression: merge-commit bypass in the per-commit [skip docs] loop ---
+# `git diff-tree --no-commit-id --name-only -r <merge-sha>` prints nothing for merge commits,
+# so a non-doc file introduced only by a merge (e.g. a conflict resolution) used to fall through
+# to allow even though it's genuinely un-acked. Build two branches that truly conflict on
+# README.md, merge with --no-ff, resolve the conflict AND introduce a new non-doc file
+# (sneaky.js) in the merge commit itself.
+
+# 12. merge-commit-introduced non-doc, no [skip docs] anywhere → deny
+repo="$(mkrepo)"
+( cd "$repo" && echo base > README.md && git add . && git commit -qm "add readme" )
+mark "$repo"
+base_branch="$(git -C "$repo" symbolic-ref --short HEAD)"
+( cd "$repo" && git checkout -qb feature-a )
+( cd "$repo" && echo line-a >> README.md && git commit -qam "readme change a" )
+( cd "$repo" && git checkout -q "$base_branch" && git checkout -qb feature-b )
+( cd "$repo" && echo line-b >> README.md && git commit -qam "readme change b" )
+( cd "$repo" && git checkout -q "$base_branch" && git merge --no-ff -q feature-a -m "merge feature-a" )
+( cd "$repo" && git merge --no-ff feature-b -m "merge feature-b" >/dev/null 2>&1
+  echo resolved > README.md && echo sneaky > sneaky.js && git add -A \
+    && git commit -qm "merge feature-b: resolve conflict, add sneaky.js" )
+out="$(run 'git push' "$repo" "$no_cfg")"; assert_deny "$out" "merge-commit-introduced non-doc denies"
+
+# 13. companion: identical conflict/merge, but every commit (branches + both merges) carries
+#     [skip docs] → allow (proves this is the ack rule, not a blanket merge block)
+repo="$(mkrepo)"
+( cd "$repo" && echo base > README.md && git add . && git commit -qm "add readme" )
+mark "$repo"
+base_branch="$(git -C "$repo" symbolic-ref --short HEAD)"
+( cd "$repo" && git checkout -qb feature-a )
+( cd "$repo" && echo line-a >> README.md && git commit -qam "readme change a [skip docs]" )
+( cd "$repo" && git checkout -q "$base_branch" && git checkout -qb feature-b )
+( cd "$repo" && echo line-b >> README.md && git commit -qam "readme change b [skip docs]" )
+( cd "$repo" && git checkout -q "$base_branch" && git merge --no-ff -q feature-a -m "merge feature-a [skip docs]" )
+( cd "$repo" && git merge --no-ff feature-b -m "merge feature-b [skip docs]" >/dev/null 2>&1
+  echo resolved > README.md && echo sneaky > sneaky.js && git add -A \
+    && git commit -qm "merge feature-b: resolve conflict, add sneaky.js [skip docs]" )
+out="$(run 'git push' "$repo" "$no_cfg")"; assert_allow "$out" "merge-commit non-doc with [skip docs] on every commit allows"
+
 exit $fail

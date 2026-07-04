@@ -58,7 +58,7 @@ changed="$(git diff --name-only "${mb}..HEAD" 2>/dev/null)" || { warn "cannot di
 
 # --- classify via the shared module (delegates docPatterns/excludeDirs/exemptPatterns) ---
 cfg_arg=(); [ -n "${1:-}" ] && [ -f "$1" ] && cfg_arg=(--config "$1")
-result="$(printf '%s\n' "$changed" | node "$here/doc-classify.mjs" "${cfg_arg[@]}" 2>/dev/null)" || { warn "classify failed; passing (fail-open)"; pass; }
+result="$(printf '%s\n' "$changed" | node "$here/doc-classify.mjs" ${cfg_arg[@]+"${cfg_arg[@]}"} 2>/dev/null)" || { warn "classify failed; passing (fail-open)"; pass; }
 parsed="$(printf '%s' "$result" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const o=JSON.parse(s);process.stdout.write(String(o.docChanged)+"\n"+((o.nonDoc||[]).join("\n")))}catch(e){process.exit(1)}})' 2>/dev/null)" || { warn "classify produced unexpected output; passing (fail-open)"; pass; }
 docchanged="$(printf '%s' "$parsed" | head -1)"
 nondoc="$(printf '%s' "$parsed" | tail -n +2)"

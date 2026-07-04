@@ -78,7 +78,7 @@ changed="$(git diff --name-only "$range" 2>/dev/null)" || allow
 here="$(cd "$(dirname "$0")" && pwd)"
 cfg_arg=(); [ -n "$cfg" ] && [ -f "$cfg" ] && cfg_arg=(--config "$cfg")
 
-result="$(printf '%s\n' "$changed" | node "$here/doc-classify.mjs" "${cfg_arg[@]}" 2>/dev/null)" || result=""
+result="$(printf '%s\n' "$changed" | node "$here/doc-classify.mjs" ${cfg_arg[@]+"${cfg_arg[@]}"} 2>/dev/null)" || result=""
 nondoc="$(printf '%s' "$result" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const o=JSON.parse(s);process.stdout.write((o.nonDoc||[]).join(" "))}catch(e){process.stdout.write("")}})' 2>/dev/null)" || nondoc=""
 
 has_skip(){ # $1 = commit sha; true if its message carries the shared [skip docs] token
@@ -94,8 +94,18 @@ if [ -n "$nondoc" ]; then
   while IFS= read -r c; do
     [ -n "$c" ] || continue
     has_skip "$c" && continue   # this commit is acknowledged
-    cfiles="$(git diff-tree --no-commit-id --name-only -r "$c" 2>/dev/null)"
-    cresult="$(printf '%s\n' "$cfiles" | node "$here/doc-classify.mjs" "${cfg_arg[@]}" 2>/dev/null)" || cresult=""
+    # Merge commits (2+ parents): a plain `-r` first-parent-style diff prints NOTHING for a
+    # merge, so a non-doc file introduced only by the merge (e.g. a conflict resolution) would
+    # silently fall through to allow. Use the combined-diff form (`-c`) instead, which surfaces
+    # only merge-unique content — files that differ from EVERY parent — so a clean auto-merge
+    # with no merge-unique change still reports nothing (no over-flagging every merged-in file).
+    # Non-merge commits are untouched: same `-r` diff as before.
+    if git rev-parse -q --verify "${c}^2" >/dev/null 2>&1; then
+      cfiles="$(git diff-tree --no-commit-id --name-only -r -c "$c" 2>/dev/null)"
+    else
+      cfiles="$(git diff-tree --no-commit-id --name-only -r "$c" 2>/dev/null)"
+    fi
+    cresult="$(printf '%s\n' "$cfiles" | node "$here/doc-classify.mjs" ${cfg_arg[@]+"${cfg_arg[@]}"} 2>/dev/null)" || cresult=""
     cnon="$(printf '%s' "$cresult" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const o=JSON.parse(s);process.stdout.write((o.nonDoc||[]).join("\n"))}catch(e){process.stdout.write("")}})' 2>/dev/null)" || cnon=""
     [ -n "$cnon" ] && { unacked=1; break; }
   done <<CL

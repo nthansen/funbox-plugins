@@ -33,12 +33,12 @@ parse the event JSON.
    - If **no install** is found → proceed to step 2 (fresh install).
    - If an install **is found**, offer three choices via `AskUserQuestion`:
      - **Reconfigure** — re-ask all choices from step 2 pre-filled with the values read from
-       the existing config JSON; then rewrite the config; re-copy the hook script only if the
-       target path changed; if and only if the hook target path or settings location changed,
-       remove the old `PreToolUse` matcher entry (the one whose `command` references the old
-       hook path/file) and add a new one pointing to the updated paths — otherwise leave the
-       matcher as-is; leave the review marker file untouched; print the structured summary
-       (step 8). Stop.
+       the existing config JSON; then rewrite the config; re-copy the hook script and
+       `doc-classify.mjs` only if the target path changed; if and only if the hook target path
+       or settings location changed, remove the old `PreToolUse` matcher entry (the one whose
+       `command` references the old hook path/file) and add a new one pointing to the updated
+       paths — otherwise leave the matcher as-is; leave the review marker file untouched; print
+       the structured summary (step 8). Stop.
      - **Uninstall** — follow the Uninstall section below. Stop.
      - **Cancel** — do nothing and exit. Stop.
 
@@ -51,9 +51,10 @@ parse the event JSON.
    - **Repo applicability** — `all` (guard fires in every repo) vs `doc-sweep-only` (the hook
      self-skips repos without a `CLAUDE.md` or `.claude/context/audience-rules.md`). Recommend
      `doc-sweep-only` for user-global installs.
-   - **Doc-file set** — `default` (CLAUDE*.md, README*.md, CHANGELOG.md, docs/**),
+   - **Doc-file set** — `default` (CLAUDE*.md, README*.md, CHANGELOG.md, docs/**, .claude/**/*.md),
      `with-skill` (also treats SKILL.md as a doc), or `minimal` (CLAUDE.md + README.md only).
-     Recommend `default`.
+     Recommend `default`. Recorded as a `docPatterns` glob list (the `default` choice matches the
+     list documented in `context/audience-rules.md`; identical meaning to the CI-check config).
    - **Trigger event** — exactly one of: `push` (recommended; one prompt per share) or
      `commit` (stricter; prompts on nearly every commit). Record as `trigger` in the config.
    - **Bypass + uninstall** — confirm the bypass tokens (`DOC_SWEEP_REVISE_SKIP=1` or
@@ -66,6 +67,12 @@ parse the event JSON.
 
    (`mkdir -p` the `hooks/` dir first.) Use an absolute path; do not rely on
    `${CLAUDE_PLUGIN_ROOT}` expanding inside settings.json.
+
+   Also copy this skill's bundled `../../hooks/doc-classify.mjs` into the **same directory** as
+   the hook above (i.e. `~/.claude/hooks/doc-classify.mjs` or
+   `${CLAUDE_PROJECT_DIR}/.claude/hooks/doc-classify.mjs`), since `revise-push-guard.sh` resolves
+   the classifier next to itself (`$here/doc-classify.mjs`). Without it the hook fails open
+   (allows the action) on every guarded command.
 
 4. **Scan for vendored directories and persist `excludeDirs`.**
 
@@ -100,9 +107,12 @@ parse the event JSON.
 
 5. **Write the config** next to the copied hook as `doc-sweep-revise.json`:
    ```json
-   { "docMode": "<chosen>", "repoScope": "<chosen>", "trigger": "<chosen>", "excludeDirs": [<confirmed>] }
+   { "docPatterns": [<chosen>], "repoScope": "<chosen>", "trigger": "<chosen>", "excludeDirs": [<confirmed>] }
    ```
-   The `excludeDirs` array must match the list persisted in step 4.
+   `<chosen>` is the glob list for the selected doc-file set (`default`, `with-skill`, or
+   `minimal` — see step 2); omit the key (or pass an empty array) to fall back to
+   `doc-classify.mjs`'s own built-in default list. The `excludeDirs` array must match the list
+   persisted in step 4.
 
 6. **Merge the hook into settings.json (idempotent).** Read the chosen settings.json
    (create `{}` if absent). Under `.hooks.PreToolUse`, append (do not overwrite) one
@@ -137,9 +147,10 @@ parse the event JSON.
    ─────────────────────────────────────────
    Settings file : <abs path to settings.json>
    Hook script   : <abs path to doc-sweep-revise-push.sh>
+   Classifier    : <abs path to doc-classify.mjs (same directory as the hook script)>
    Config file   : <abs path to doc-sweep-revise.json>
    Trigger       : <push|commit>
-   Doc-file set  : <default|with-skill|minimal>
+   Doc-file set  : <default|with-skill|minimal> (docPatterns: <glob list>)
    Repo scope    : <all|doc-sweep-only>
    Excluded dirs : <comma-separated list, or "(none)">
    Marker state  : <seeded at <SHA> (assumption) | seeded by revise-docs-and-mark | unseeded (next gated action will block)>
@@ -157,7 +168,7 @@ parse the event JSON.
 
 Remove the `PreToolUse` matcher block whose `command` value contains
 `doc-sweep-revise-push.sh` from the settings.json where it was found, then delete the
-copied hook script and its config JSON. Leave all other settings, hooks, and the review
-marker file untouched. Confirm what was removed (settings file path, hook path, config
-path). The marker file is intentionally left in place so a reinstall can seed from it or
-ignore it.
+copied hook script, the copied `doc-classify.mjs` next to it, and the config JSON. Leave
+all other settings, hooks, and the review marker file untouched. Confirm what was removed
+(settings file path, hook path, classifier path, config path). The marker file is
+intentionally left in place so a reinstall can seed from it or ignore it.

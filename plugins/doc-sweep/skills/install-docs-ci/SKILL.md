@@ -49,9 +49,10 @@ hook recognizes, so the two guards share one vocabulary.
 
 2. **Collect scope (AskUserQuestion).** Ask both in one prompt, with defaults called out:
 
-   - **Doc-file set** — `default` (CLAUDE*.md, README*.md, CHANGELOG.md, docs/**),
+   - **Doc-file set** — `default` (CLAUDE*.md, README*.md, CHANGELOG.md, docs/**, .claude/**/*.md),
      `with-skill` (also treats SKILL.md as a doc), or `minimal` (CLAUDE.md + README.md only).
-     Recommend `default`. Recorded as `docMode` (identical meaning to the push-guard config).
+     Recommend `default`. Recorded as a `docPatterns` glob list (the `default` choice matches the
+     list documented in `context/audience-rules.md`; identical meaning to the push-guard config).
    - **Excluded directories** — confirm the vendored/generated dirs whose changes should be
      ignored (neither doc nor non-doc). Recorded as `excludeDirs`.
 
@@ -67,15 +68,22 @@ hook recognizes, so the two guards share one vocabulary.
    - **Known vendor names**: any of `vendor`, `third_party`, `Pods`, `bower_components`,
      `node_modules` existing as a root directory.
 
-4. **Copy the check script and write the config.** `mkdir -p` `.github/doc-sweep/`, then:
+4. **Copy the check script and classifier, and write the config.** `mkdir -p` `.github/doc-sweep/`, then:
    - Copy this skill's bundled `../../hooks/docs-ci-check.sh` to
      `${CLAUDE_PROJECT_DIR}/.github/doc-sweep/docs-ci-check.sh` (keep it executable; it must stay
      LF). Vendoring the script keeps the check self-contained — no external action ref, no
      runtime download.
+   - Also copy this skill's bundled `../../hooks/doc-classify.mjs` to
+     `${CLAUDE_PROJECT_DIR}/.github/doc-sweep/doc-classify.mjs` — the **same directory** as the
+     script above, since `docs-ci-check.sh` resolves the classifier next to itself
+     (`$here/doc-classify.mjs`). Without it the check fails open (passes) on every PR.
    - Write `${CLAUDE_PROJECT_DIR}/.github/doc-sweep/docs-ci.json`:
      ```json
-     { "docMode": "<chosen>", "excludeDirs": [<confirmed>] }
+     { "docPatterns": [<chosen>], "excludeDirs": [<confirmed>] }
      ```
+     `<chosen>` is the glob list for the selected doc-file set (`default`, `with-skill`, or
+     `minimal` — see step 2); omit the key (or pass an empty array) to fall back to
+     `doc-classify.mjs`'s own built-in default list.
 
 5. **Scaffold the workflow (idempotent).** Write
    `${CLAUDE_PROJECT_DIR}/.github/workflows/doc-sweep-docs.yml` (do not overwrite an unrelated
@@ -112,8 +120,9 @@ hook recognizes, so the two guards share one vocabulary.
    ───────────────────────────────────────────
    Workflow file : <abs path to .github/workflows/doc-sweep-docs.yml>
    Check script  : <abs path to .github/doc-sweep/docs-ci-check.sh>
+   Classifier    : <abs path to .github/doc-sweep/doc-classify.mjs>
    Config file   : <abs path to .github/doc-sweep/docs-ci.json>
-   Doc-file set  : <default|with-skill|minimal>
+   Doc-file set  : <default|with-skill|minimal> (docPatterns: <glob list>)
    Excluded dirs : <comma-separated list, or "(none)">
    Ack token     : [skip docs]  (in a commit message or the PR description)
 
@@ -129,7 +138,8 @@ hook recognizes, so the two guards share one vocabulary.
 ## Uninstall
 
 Delete the scaffolded workflow `${CLAUDE_PROJECT_DIR}/.github/workflows/doc-sweep-docs.yml`, the
-vendored `${CLAUDE_PROJECT_DIR}/.github/doc-sweep/docs-ci-check.sh`, and its
-`docs-ci.json`. Remove the now-empty `.github/doc-sweep/` directory if nothing else remains.
-Leave all other workflows and files untouched. Confirm what was removed (workflow path, script
-path, config path). The change takes effect once you commit the removal.
+vendored `${CLAUDE_PROJECT_DIR}/.github/doc-sweep/docs-ci-check.sh` and its vendored
+`doc-classify.mjs`, and the `docs-ci.json` config. Remove the now-empty `.github/doc-sweep/`
+directory if nothing else remains. Leave all other workflows and files untouched. Confirm what
+was removed (workflow path, script path, classifier path, config path). The change takes effect
+once you commit the removal.

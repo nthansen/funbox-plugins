@@ -13,10 +13,11 @@ skill is untouched. The hook is deterministic, fails open, and parses JSON with 
 doc-sweep SHALL provide a manual, model-non-invocable skill that installs the guard only
 when a user runs it. On a **fresh install** the installer SHALL collect, via interactive
 prompts: settings location (user-global vs project), repo applicability (all repos vs
-doc-sweep-enabled only), the documentation-file set, the **trigger event** (exactly one of
-`push` or `commit`, with `push` recommended as default), and bypass/uninstall confirmation.
-It SHALL then copy the hook script to a stable, version-independent path, write the chosen
-configuration (including `trigger`), and merge an idempotent `PreToolUse`/`Bash` hook into
+doc-sweep-enabled only), the documentation-file set (recorded as `docPatterns`, NOT the retired
+`docMode`), the **trigger event** (exactly one of `push` or `commit`, with `push` recommended as
+default), and bypass/uninstall confirmation. It SHALL then copy the hook script **and the shared
+`doc-classify.mjs` module** to a stable, version-independent path, write the chosen configuration
+(including `trigger` and `docPatterns`), and merge an idempotent `PreToolUse`/`Bash` hook into
 the selected `settings.json` without overwriting unrelated hooks. After writing the hook the
 installer SHALL offer to seed the review marker — seed `HEAD` now (reported as an assumption,
 with no review performed), run `revise-docs-and-mark` now, or leave it unseeded with a
@@ -31,7 +32,7 @@ Reconfigure SHALL re-ask the choices pre-filled with the current config, rewrite
 #### Scenario: Fresh install seeds and summarizes
 
 - **WHEN** a user runs the installer, selects scoping options including a trigger, and chooses to seed the marker
-- **THEN** the hook is copied to a stable path, a config capturing the choices (including `trigger`) is written, a `PreToolUse`/`Bash` entry is added, the marker is set to HEAD, and a structured summary with edit/uninstall instructions is printed
+- **THEN** the hook script and `doc-classify.mjs` are copied to a stable path, a config capturing the choices (including `trigger` and `docPatterns`) is written, a `PreToolUse`/`Bash` entry is added, the marker is set to HEAD, and a structured summary with edit/uninstall instructions is printed
 
 #### Scenario: Trigger is chosen at install
 
@@ -51,7 +52,7 @@ Reconfigure SHALL re-ask the choices pre-filled with the current config, rewrite
 #### Scenario: Uninstall
 
 - **WHEN** the user chooses uninstall
-- **THEN** the `PreToolUse` entry, the copied hook script, and the config are removed, leaving other settings and the marker file intact
+- **THEN** the `PreToolUse` entry, the copied hook script, the copied `doc-classify.mjs`, and the config are removed, leaving other settings and the marker file intact
 
 ### Requirement: Snapshot owned by a guard wrapper, not the base skill
 
@@ -131,10 +132,11 @@ the gated command if and only if at least one non-documentation file changed in 
 from the last `revise-docs` marker to `HEAD`. When it denies, it SHALL return a reason that
 names the gated verb and instructs the operator to run `revise-docs-and-mark`, commit any
 changes, and retry. If only documentation files (or nothing) changed since the marker, it
-SHALL allow the command. A documentation file is one matching the configured doc-file set
-(default: `CLAUDE*.md`, `README*.md`, `CHANGELOG.md`, `docs/**`); files under configured
-excluded directories SHALL be treated as neither doc nor non-doc (ignored entirely). A
-command that is not the configured trigger SHALL be allowed without inspection.
+SHALL allow the command. Doc/non-doc/excluded classification SHALL be delegated to the shared
+`doc-classification` module (`doc-classify.mjs`) using the configured `docPatterns` and
+`excludeDirs` (or that module's built-in default) — the hook SHALL NOT carry its own inline
+doc/non-doc patterns and SHALL NOT read a `docMode`. A command that is not the configured trigger
+SHALL be allowed without inspection.
 
 #### Scenario: Non-doc change blocks the configured trigger
 
@@ -145,6 +147,11 @@ command that is not the configured trigger SHALL be allowed without inspection.
 
 - **WHEN** the configured trigger command is attempted and only doc-set files changed since the marker
 - **THEN** the hook allows it
+
+#### Scenario: A .claude doc change allows
+
+- **WHEN** the only change since the marker is to `.claude/context/audience-rules.md`
+- **THEN** the shared classifier counts it as a doc and the hook allows the command
 
 #### Scenario: Commit trigger ignores push
 

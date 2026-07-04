@@ -90,11 +90,22 @@ merge base, so there's no marker or state to maintain.
 A pull request clears the check when any one of these is true:
 
 - a documentation file was updated, or
+- every non-doc file that changed is **exempt** (see below), or
 - a **`[skip docs]`** token (mirroring `[skip ci]`) appears in any commit message in the PR, or
 - a **`[skip docs]`** line appears in the PR description (editable in the browser — no rebase).
 
 So a legitimate code-only change — a bug fix that needs no docs — is never a hard blocker; you
 just add `[skip docs]`.
+
+Both this check and the push guard below delegate classification to a single shared module,
+`hooks/doc-classify.mjs`, so "what counts as a doc" is defined once and can't drift between the
+two guards. It takes a **`docPatterns`** glob list (default: `CLAUDE*.md`, `README*.md`,
+`CHANGELOG.md`, anything under `docs/`, and any `.md` under `.claude/`) and an **`exemptPatterns`**
+glob list — first-party changes that never require docs, matched *before* `docPatterns`. The
+built-in default covers common test globs (`*.test.*`, `*.spec.*`, `test/**`, `tests/**`,
+`__tests__/**`, `*_test.go`, `*_test.py`), so a change that only touches tests passes without a
+`[skip docs]` ack — but a commit that mixes a test file with real source still enforces on the
+source file. Both lists are fully configurable per-installer (see "Doc-file set" below).
 
 Nothing is installed automatically. To set it up, run:
 
@@ -133,10 +144,17 @@ The installer is interactive and asks you four questions before writing anything
 2. **Repo applicability** — all repos, or only repos that have `doc-sweep` set up (a
    `CLAUDE.md` or `.claude/context/audience-rules.md`). User-global installs default to
    doc-sweep-enabled repos only.
-3. **Doc-file set** — which files count as "documentation" and won't trigger the guard:
-   - `default`: `CLAUDE*.md`, `README*.md`, `CHANGELOG.md`, `docs/**`
+3. **Doc-file set** — which files count as "documentation" (`docPatterns`) and won't trigger the
+   guard:
+   - `default`: `CLAUDE*.md`, `README*.md`, `CHANGELOG.md`, `docs/**`, and any `.md` under
+     `.claude/`
    - `with-skill`: same as default, plus `SKILL.md` files
    - `minimal`: `CLAUDE.md` and `README.md` only
+
+   A custom choice is recorded as a `docPatterns` glob list (replacing the module's built-in
+   default, not adding to it); `default` omits `docPatterns` from the config so the shared
+   module's own default applies. Independent of this choice, `exemptPatterns` (see above) always
+   applies — test-only changes clear the guard without an ack regardless of the doc-file set.
 4. **Bypass and uninstall** — the installer confirms the bypass token and how to remove
    the guard.
 

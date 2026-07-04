@@ -44,6 +44,9 @@ jobs:
       - name: Skill-gate library unit tests
         run: node --test scripts/skill-gate-lib.test.mjs
 
+      - name: doc-classify unit tests
+        run: node --test plugins/doc-sweep/hooks/doc-classify.test.mjs
+
       # Quality layer: every skill must have fresh eval artifacts meeting its
       # threshold. Deterministic, no LLM, no Anthropic auth (artifacts are
       # produced at author time by /skill-gate and committed).

@@ -10,6 +10,34 @@ For what the plugin does and how to use it, see [README.md](README.md).
 
 ## Notable additions
 
+**Unify doc classification** (`unify-doc-classification`, 2026-07)
+
+- Both guards previously carried their own copy of the doc-matching logic; a `.claude/**`
+  misclassification (non-`.md` and nested files under `.claude/` were not reliably recognized as
+  docs) had drifted between them. Fixed by extracting a single shared module,
+  `hooks/doc-classify.mjs`, that both the CI check (`docs-ci-check.sh`) and the push guard
+  (`revise-push-guard.sh`) now delegate to — one glob-matching implementation, one default doc
+  set, no room for the two guards to disagree again. Installers vendor the classifier alongside
+  the guard script they scaffold.
+- **`docMode` is retired** in favor of a plain **`docPatterns`** glob array (**BREAKING** for any
+  hand-written or previously-scaffolded config still using the old `docMode` field — it is no
+  longer read; re-run the relevant install skill, or rename the field to `docPatterns` in
+  `doc-sweep-revise.json` / `docs-ci.json`, to keep a custom doc-file set in effect). Omitting
+  `docPatterns` falls back to the module's built-in default, which now correctly includes
+  `.claude/**/*.md`.
+- New **`exemptPatterns`** concept: first-party changes that never require docs, matched before
+  `docPatterns`. The built-in default covers common test globs (`*.test.*`, `*.spec.*`,
+  `test/**`, `tests/**`, `__tests__/**`, `*_test.go`, `*_test.py`) — a change whose only non-doc
+  files are exempt now clears both the CI check and the push guard *without* a `[skip docs]` ack,
+  so test-only PRs and pushes are never blocked. A change that mixes an exempt file with real
+  source still enforces on the source file. Configurable per-installer, same mechanism as
+  `docPatterns`.
+- Funbox's own `docs-staleness.yml` needs no change to pick this up — it runs the check with no
+  config, so the fixed built-in default (including `.claude/**`) applies automatically.
+- New `node --test` suite, `hooks/doc-classify.test.mjs`, covering glob translation, default
+  classification, `docPatterns`/`exemptPatterns` overrides, `excludeDirs` precedence, and the
+  test-only-exempt behavior; wired into `validate.yml`.
+
 **Docs-staleness CI check** (`add-docs-staleness-ci`, 2026-07)
 
 - New PR-time GitHub Actions check (`hooks/docs-ci-check.sh`) that **fails** a pull request when

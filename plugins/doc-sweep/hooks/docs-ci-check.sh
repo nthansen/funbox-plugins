@@ -57,11 +57,11 @@ changed="$(git diff --name-only "${mb}..HEAD" 2>/dev/null)" || { warn "cannot di
 [ -n "$changed" ] || pass   # nothing changed
 
 # --- classify via the shared module (delegates docPatterns/excludeDirs/exemptPatterns) ---
-cfg_arg=""; [ -n "${1:-}" ] && [ -f "$1" ] && cfg_arg="--config $1"
-# shellcheck disable=SC2086
-result="$(printf '%s\n' "$changed" | node "$here/doc-classify.mjs" $cfg_arg 2>/dev/null)" || { warn "classify failed; passing (fail-open)"; pass; }
-docchanged="$(printf '%s' "$result" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write(String(JSON.parse(s).docChanged)))' 2>/dev/null)"
-nondoc="$(printf '%s' "$result" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write((JSON.parse(s).nonDoc||[]).join("\n")))' 2>/dev/null)"
+cfg_arg=(); [ -n "${1:-}" ] && [ -f "$1" ] && cfg_arg=(--config "$1")
+result="$(printf '%s\n' "$changed" | node "$here/doc-classify.mjs" "${cfg_arg[@]}" 2>/dev/null)" || { warn "classify failed; passing (fail-open)"; pass; }
+parsed="$(printf '%s' "$result" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const o=JSON.parse(s);process.stdout.write(String(o.docChanged)+"\n"+((o.nonDoc||[]).join("\n")))}catch(e){process.exit(1)}})' 2>/dev/null)" || { warn "classify produced unexpected output; passing (fail-open)"; pass; }
+docchanged="$(printf '%s' "$parsed" | head -1)"
+nondoc="$(printf '%s' "$parsed" | tail -n +2)"
 
 # Pass if no non-doc changed, or a doc changed, or the change is acknowledged.
 [ -z "$nondoc" ] && pass

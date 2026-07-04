@@ -72,4 +72,28 @@ run "$base" "$repo"; assert_pass $? "test-only change passes (exempt)"
 repo="$(mkrepo)"; base="$(basesha "$repo")"; commitfile "$repo" src/app.test.js; commitfile "$repo" src/app.js
 run "$base" "$repo"; assert_fail $? "tests + src still enforces"
 
+# config path containing spaces is honored (not word-split into the default fallback)
+repo="$(mkrepo)"; base="$(basesha "$repo")"; commitfile "$repo" vendor/x.js
+cfgdir="$(mktemp -d)/with space"; mkdir -p "$cfgdir"; cfg="$cfgdir/cfg.json"
+echo '{"excludeDirs":["vendor"]}' > "$cfg"
+run "$base" "$repo" "" "$cfg"; assert_pass $? "config path with spaces is honored (exclusion applies)"
+
+# malformed classifier output fails open with a warning (unguarded JSON.parse would silently
+# yield empty strings and exit 0 with no diagnostic instead)
+malrepo="$(mkrepo)"; malbase="$(basesha "$malrepo")"; commitfile "$malrepo" src/app.js
+maldir="$(mktemp -d)"
+cp "$SCRIPT" "$maldir/docs-ci-check.sh"
+cat > "$maldir/doc-classify.mjs" <<'EOF'
+process.stdout.write('{"nonDoc":["x"');
+process.exit(0);
+EOF
+malout="$(cd "$malrepo" && DOCS_CI_BASE="$malbase" DOCS_CI_PR_BODY="" bash "$maldir/docs-ci-check.sh" 2>&1 >/dev/null)"
+malrc=$?
+if [ "$malrc" -eq 0 ] && printf '%s' "$malout" | grep -qi 'unexpected output'; then
+  echo "ok: malformed classifier output fails open with a warning"
+else
+  echo "FAIL(expected pass+warning): malformed classifier output fails open with a warning (rc=$malrc, stderr=$malout)"
+  fail=1
+fi
+
 exit $fail

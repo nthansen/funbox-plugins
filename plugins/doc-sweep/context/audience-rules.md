@@ -40,8 +40,11 @@ example, `with-skill` would be persisted as:
       - ".claude/**/*.md"
       - "**/SKILL.md"
 
-`exemptPatterns` (first-party paths that don't require docs) is not currently exposed as an
-installer choice; only the built-in default applies:
+`exemptPatterns` (first-party paths that don't require docs) defaults to the built-in test globs
+below. Both installers (`install-docs-ci`, `install-revise-hook`) offer an exempt-set choice:
+`default` (keep only these built-in globs — nothing persisted here) or `add-extras`, where the
+installer persists an `exemptPatterns:` block holding these built-in globs **followed by** the
+user's additions (the same way `docPatterns`/`excludeDirs` are persisted). Built-in default:
 
     exemptPatterns:
       - "**/*.test.*"

@@ -43,6 +43,13 @@ parse the event JSON.
        entry (the one whose `command` references the old hook path/file) and add a new one
        pointing to the updated paths — otherwise leave the matcher as-is; leave the review marker
        file untouched; print the structured summary (step 8). Stop.
+
+       **Preserve `exemptPatterns` across reconfigure.** If the existing config has a non-default
+       `exemptPatterns`, treat the pre-filled exempt choice as `add-extras`, with the user's
+       additions equal to the stored list minus the 7 built-in globs. If the exempt choice isn't
+       changed in this reconfigure, rewrite `exemptPatterns` unchanged (verify it still starts with
+       all 7 built-ins before writing). Only omit `exemptPatterns` from the rewritten config if the
+       user explicitly switches the exempt choice back to `default`.
      - **Uninstall** — follow the Uninstall section below. Stop.
      - **Cancel** — do nothing and exit. Stop.
 
@@ -64,6 +71,21 @@ parse the event JSON.
      applies. If the user picks `with-skill` or `minimal` (a custom set), record the concrete
      glob list as `docPatterns` and persist it into `.claude/context/audience-rules.md` the same
      way `excludeDirs` is persisted (step 4).
+   - **Exempt paths** — first-party changes that never require docs (default: the built-in test
+     globs). Offer `default` (omit `exemptPatterns` so the classifier's built-in test globs apply)
+     or `add-extras` (the user names additional globs to exempt, e.g. a lockfile like
+     `package-lock.json` or a generated dir like `gen/**`). Recommend `default`. On `add-extras`,
+     the recorded `exemptPatterns` is **this skill's bundled** `../../context/audience-rules.md`
+     (the plugin's own copy — explicitly **not** the project's `.claude/context/audience-rules.md`,
+     which may have no `exemptPatterns` block in a fresh repo) built-in default test globs,
+     enumerated here as the authoritative list and kept in sync with `doc-classify.mjs`'s
+     `DEFAULT_EXEMPT_PATTERNS`:
+     `**/*.test.*`, `**/*.spec.*`, `**/test/**`, `**/tests/**`, `**/__tests__/**`, `**/*_test.go`,
+     `**/*_test.py`
+     — **followed by** the user's additions, so the tests stay exempt without being re-typed.
+     Before writing `exemptPatterns` anywhere (config JSON or `audience-rules.md`), verify the
+     list starts with all 7 built-ins in that order; if it doesn't, stop and fix it — never write a
+     list missing them.
    - **Trigger event** — exactly one of: `push` (recommended; one prompt per share) or
      `commit` (stricter; prompts on nearly every commit). Record as `trigger` in the config.
    - **Bypass + uninstall** — confirm the bypass tokens (`DOC_SWEEP_REVISE_SKIP=1` or
@@ -120,15 +142,25 @@ parse the event JSON.
       place if it does, or create the file with a brief header comment if it doesn't exist yet.
       If the user kept the **default**, do not write a `docPatterns:` block here.
 
-5. **Write the config** next to the copied hook as `doc-sweep-revise.json`:
-   - Default doc-file set — omit `docPatterns` entirely:
+   e. If the user chose **add-extras** for the exempt set in step 2, persist an `exemptPatterns:`
+      block holding, in order, the 7 built-in globs listed in step 2 (sourced from **this skill's
+      bundled** `../../context/audience-rules.md`, not the project's copy) followed by the user's
+      additions, the same way. Before writing, verify the list starts with all 7 built-ins — if it
+      doesn't, stop and fix it rather than writing an incomplete list. If the user kept the
+      **default** exempt set, do not write an `exemptPatterns:` block here.
+
+5. **Write the config** next to the copied hook as `doc-sweep-revise.json`. Include `docPatterns`
+   only for a custom doc-file set, and `exemptPatterns` only for an add-extras exempt set; a default
+   choice omits that key so the classifier's built-in default applies. `repoScope`, `trigger`, and
+   `excludeDirs` are always present. Examples:
+   - Both axes default:
      ```json
      { "repoScope": "<chosen>", "trigger": "<chosen>", "excludeDirs": [<confirmed>] }
      ```
-   - Custom doc-file set (`with-skill` or `minimal`) — include the concrete glob list,
-     mirroring what was persisted to `audience-rules.md` in step 4d:
+   - Custom doc-file set and/or add-extras exempt set (include each key that applies, mirroring
+     what was persisted to `audience-rules.md` in step 4):
      ```json
-     { "docPatterns": [<chosen>], "repoScope": "<chosen>", "trigger": "<chosen>", "excludeDirs": [<confirmed>] }
+     { "docPatterns": [<chosen>], "exemptPatterns": [<built-in tests + additions>], "repoScope": "<chosen>", "trigger": "<chosen>", "excludeDirs": [<confirmed>] }
      ```
    The `excludeDirs` array must match the list persisted in step 4.
 
@@ -169,6 +201,7 @@ parse the event JSON.
    Config file   : <abs path to doc-sweep-revise.json>
    Trigger       : <push|commit>
    Doc-file set  : <default|with-skill|minimal> (docPatterns: <glob list, or "(built-in default)">)
+   Exempt set    : <default|add-extras> (exemptPatterns: <glob list, or "(built-in test globs)">)
    Repo scope    : <all|doc-sweep-only>
    Excluded dirs : <comma-separated list, or "(none)">
    Marker state  : <seeded at <SHA> (assumption) | seeded by revise-docs-and-mark | unseeded (next gated action will block)>

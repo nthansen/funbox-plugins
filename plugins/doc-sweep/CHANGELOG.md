@@ -10,6 +10,15 @@ For what the plugin does and how to use it, see [README.md](README.md).
 
 ## Notable additions
 
+**Expose `exemptPatterns` to installers** (`expose-exempt-patterns`, 2026-07)
+
+- Both installers (`install-docs-ci`, `install-revise-hook`) now prompt for an **exempt-set** choice
+  alongside the doc-file set: `default` (the built-in test globs) or **add-extras**, where you name
+  additional globs to exempt (a lockfile, a generated dir, …). On add-extras the installer records
+  `exemptPatterns` as the built-in test globs **followed by** your additions — so you keep the tests
+  without re-typing them — and persists it to `.claude/context/audience-rules.md` like `docPatterns`.
+  Previously `exemptPatterns` was only settable by hand-editing the config JSON. No classifier change.
+
 **Unify doc classification** (`unify-doc-classification`, 2026-07)
 
 - Both guards previously carried their own copy of the doc-matching logic; a `.claude/**`

@@ -48,6 +48,13 @@ hook recognizes, so the two guards share one vocabulary.
        missing or stale classifier even when nothing else about the install changed); leave the
        workflow file in place (rewrite it only if its path/name changed); print the summary
        (step 6). Stop.
+
+       **Preserve `exemptPatterns` across reconfigure.** If the existing config has a non-default
+       `exemptPatterns`, treat the pre-filled exempt choice as `add-extras`, with the user's
+       additions equal to the stored list minus the 7 built-in globs. If the exempt choice isn't
+       changed in this reconfigure, rewrite `exemptPatterns` unchanged (verify it still starts with
+       all 7 built-ins before writing). Only omit `exemptPatterns` from the rewritten config if the
+       user explicitly switches the exempt choice back to `default`.
      - **Uninstall** — follow the Uninstall section below. Stop.
      - **Cancel** — do nothing and exit. Stop.
 
@@ -64,6 +71,21 @@ hook recognizes, so the two guards share one vocabulary.
      way `excludeDirs` is persisted (step 4).
    - **Excluded directories** — confirm the vendored/generated dirs whose changes should be
      ignored (neither doc nor non-doc). Recorded as `excludeDirs`.
+   - **Exempt paths** — first-party changes that never require docs (default: the built-in test
+     globs). Offer `default` (keep only the built-in test globs — omit `exemptPatterns` so the
+     classifier's built-in default applies) or `add-extras` (the user names additional globs to
+     exempt, e.g. a lockfile like `package-lock.json` or a generated dir like `gen/**`). Recommend
+     `default`. On `add-extras`, the recorded `exemptPatterns` is **this skill's bundled**
+     `../../context/audience-rules.md` (the plugin's own copy — explicitly **not** the project's
+     `.claude/context/audience-rules.md`, which may have no `exemptPatterns` block in a fresh repo)
+     built-in default test globs, enumerated here as the authoritative list and kept in sync with
+     `doc-classify.mjs`'s `DEFAULT_EXEMPT_PATTERNS`:
+     `**/*.test.*`, `**/*.spec.*`, `**/test/**`, `**/tests/**`, `**/__tests__/**`, `**/*_test.go`,
+     `**/*_test.py`
+     — **followed by** the user's additions, so the tests stay exempt without being re-typed.
+     Before writing `exemptPatterns` anywhere (config JSON or `audience-rules.md`), verify the
+     list starts with all 7 built-ins in that order; if it doesn't, stop and fix it — never write a
+     list missing them.
 
 3. **Scan for vendored directories and resolve `excludeDirs`.**
 
@@ -86,21 +108,28 @@ hook recognizes, so the two guards share one vocabulary.
      `${CLAUDE_PROJECT_DIR}/.github/doc-sweep/doc-classify.mjs` — the **same directory** as the
      script above, since `docs-ci-check.sh` resolves the classifier next to itself
      (`$here/doc-classify.mjs`). Without it the check fails open (passes) on every PR.
-   - If the user chose a **custom** doc-file set in step 2 (`with-skill` or `minimal`), persist
-     the chosen `docPatterns` glob list into `.claude/context/audience-rules.md` the same way
-     `excludeDirs` is persisted: append a `docPatterns:` block if the file exists and doesn't
-     already have one, update it in place if it does, or create the file with a brief header
-     comment if it doesn't exist yet. If the user kept the **default**, leave `audience-rules.md`
-     untouched for `docPatterns`.
-   - Write `${CLAUDE_PROJECT_DIR}/.github/doc-sweep/docs-ci.json`:
-     - Default doc-file set — omit `docPatterns` entirely:
+   - Persist any **custom** choice into `.claude/context/audience-rules.md` the same way
+     `excludeDirs` is persisted (append the block if absent, update in place if present, or create
+     the file with a brief header comment if it doesn't exist yet):
+     - a **custom** doc-file set (`with-skill` or `minimal`) → a `docPatterns:` block;
+     - an **add-extras** exempt set → an `exemptPatterns:` block holding, in order, the 7 built-in
+       globs listed in step 2 (sourced from **this skill's bundled**
+       `../../context/audience-rules.md`, not the project's copy) followed by the user's
+       additions. Before writing, verify the list starts with all 7 built-ins — if it doesn't, stop
+       and fix it rather than writing an incomplete list.
+     If the user kept the **default** for a given axis, leave `audience-rules.md` untouched for that
+     key.
+   - Write `${CLAUDE_PROJECT_DIR}/.github/doc-sweep/docs-ci.json`. Include a key **only** when the
+     user picked a non-default value; a default choice omits the key so the classifier's built-in
+     default applies. `excludeDirs` is always present (possibly `[]`). Examples:
+     - Both axes default:
        ```json
        { "excludeDirs": [<confirmed>] }
        ```
-     - Custom doc-file set (`with-skill` or `minimal`) — include the concrete glob list,
-       mirroring what was just persisted to `audience-rules.md`:
+     - Custom doc-file set and/or add-extras exempt set (include each key that applies, mirroring
+       what was persisted to `audience-rules.md`):
        ```json
-       { "docPatterns": [<chosen>], "excludeDirs": [<confirmed>] }
+       { "docPatterns": [<chosen>], "exemptPatterns": [<built-in tests + additions>], "excludeDirs": [<confirmed>] }
        ```
 
 5. **Scaffold the workflow (idempotent).** Write
@@ -141,6 +170,7 @@ hook recognizes, so the two guards share one vocabulary.
    Classifier    : <abs path to .github/doc-sweep/doc-classify.mjs>
    Config file   : <abs path to .github/doc-sweep/docs-ci.json>
    Doc-file set  : <default|with-skill|minimal> (docPatterns: <glob list, or "(built-in default)">)
+   Exempt set    : <default|add-extras> (exemptPatterns: <glob list, or "(built-in test globs)">)
    Excluded dirs : <comma-separated list, or "(none)">
    Ack token     : [skip docs]  (in a commit message or the PR description)
 

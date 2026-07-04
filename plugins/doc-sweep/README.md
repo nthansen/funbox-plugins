@@ -105,9 +105,10 @@ glob list — first-party changes that never require docs, matched *before* `doc
 built-in default covers common test globs (`*.test.*`, `*.spec.*`, `test/**`, `tests/**`,
 `__tests__/**`, `*_test.go`, `*_test.py`), so a change that only touches tests passes without a
 `[skip docs]` ack — but a commit that mixes a test file with real source still enforces on the
-source file. `docPatterns` is an installer prompt (see "Doc-file set" below); `exemptPatterns`
-isn't prompted — configure it by hand-editing the per-install config JSON that the classifier
-reads via `--config`.
+source file. Both `docPatterns` (see "Doc-file set" below) and `exemptPatterns` are installer
+prompts: for the exempt set you choose **default** (keep the built-in test globs) or **add extras**
+(name additional globs to exempt — e.g. a lockfile or a generated directory — which the installer
+records alongside the built-in test globs so you don't re-type them).
 
 Nothing is installed automatically. To set it up, run:
 
@@ -139,7 +140,7 @@ Nothing is installed automatically. To set it up, run:
 /doc-sweep:install-revise-hook
 ```
 
-The installer is interactive and asks you four questions before writing anything:
+The installer is interactive and asks you five questions before writing anything:
 
 1. **Settings location** — user-global (`~/.claude/settings.json`, guards every repo where
    Claude pushes) or project-local (`.claude/settings.json` in the current repo only).
@@ -155,9 +156,11 @@ The installer is interactive and asks you four questions before writing anything
 
    A custom choice is recorded as a `docPatterns` glob list (replacing the module's built-in
    default, not adding to it); `default` omits `docPatterns` from the config so the shared
-   module's own default applies. Independent of this choice, `exemptPatterns` (see above) always
-   applies — test-only changes clear the guard without an ack regardless of the doc-file set.
-4. **Bypass and uninstall** — the installer confirms the bypass token and how to remove
+   module's own default applies.
+4. **Exempt paths** — `default` (the built-in test globs; test-only changes clear the guard without
+   an ack) or `add-extras` (name additional globs to exempt, recorded alongside the built-in test
+   globs so you keep both). Recorded as `exemptPatterns` (omitted for `default`).
+5. **Bypass and uninstall** — the installer confirms the bypass token and how to remove
    the guard.
 
 ### Bypass

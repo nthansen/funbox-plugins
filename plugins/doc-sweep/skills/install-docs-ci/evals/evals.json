@@ -11,7 +11,8 @@
         "Scaffolds a pull_request workflow at .github/workflows/doc-sweep-docs.yml that runs the vendored check script with checkout fetch-depth:0",
         "Prints a structured summary listing the workflow/script/classifier/config paths, the doc-file set, the [skip docs] token, the branch-protection note, and how to edit/uninstall",
         "Does not scaffold anything until the user confirms",
-        "Re-running the install does not duplicate the workflow (idempotent)"
+        "Re-running the install does not duplicate the workflow (idempotent)",
+        "For the default exempt-set choice, omits exemptPatterns from the config JSON so the classifier's built-in test globs apply"
       ],
       "files": []
     },
@@ -33,9 +34,15 @@
         "Detects the existing install and offers Reconfigure / Uninstall / Cancel rather than a blind fresh install",
         "On Reconfigure, rewrites the docs-ci.json config with docPatterns set to the minimal glob list (e.g. CLAUDE*.md and README*.md only) while preserving the other choices",
         "Leaves the workflow file in place (rewrites it only if its path or name changed)",
-        "On Reconfigure, unconditionally re-copies doc-classify.mjs alongside docs-ci-check.sh into .github/doc-sweep/ (self-heals a missing or stale classifier) even though the workflow file itself is left in place"
+        "On Reconfigure, unconditionally re-copies doc-classify.mjs alongside docs-ci-check.sh into .github/doc-sweep/ (self-heals a missing or stale classifier) even though the workflow file itself is left in place",
+        "The existing docs-ci.json fixture carries an exemptPatterns of the 7 built-in test globs plus one addition (e.g. package-lock.json); since this reconfigure only changes the doc-file set (not the exempt choice), the rewritten docs-ci.json preserves that exemptPatterns list unchanged, still starting with all 7 built-ins"
       ],
-      "files": []
+      "files": [
+        {
+          "path": ".github/doc-sweep/docs-ci.json",
+          "content": "{ \"exemptPatterns\": [\"**/*.test.*\", \"**/*.spec.*\", \"**/test/**\", \"**/tests/**\", \"**/__tests__/**\", \"**/*_test.go\", \"**/*_test.py\", \"package-lock.json\"], \"excludeDirs\": [] }"
+        }
+      ]
     },
     {
       "id": 4,
@@ -44,6 +51,16 @@
         "Scans for likely-vendored directories (submodules, non-root package manifests, known vendor names) and presents candidates for confirmation",
         "Records the confirmed excludeDirs list into the .github/doc-sweep/docs-ci.json config",
         "Reads an existing excludeDirs list from .claude/context/audience-rules.md if one is already present rather than re-prompting"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Set up the docs CI check for this project, and also exempt the package-lock.json lockfile from requiring docs.",
+      "assertions": [
+        "Records exemptPatterns in .github/doc-sweep/docs-ci.json as the built-in default test globs (e.g. **/*.test.*, **/tests/**) FOLLOWED BY the user's addition (package-lock.json), rather than replacing the tests with only the addition",
+        "Persists the same exemptPatterns list into .claude/context/audience-rules.md, the same way docPatterns/excludeDirs are persisted",
+        "Functionally, a PR changing only package-lock.json (or only a test file) passes while a PR changing src code still enforces"
       ],
       "files": []
     }

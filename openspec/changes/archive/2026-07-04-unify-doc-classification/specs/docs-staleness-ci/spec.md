@@ -1,15 +1,5 @@
-# docs-staleness-ci Specification
+## MODIFIED Requirements
 
-## Purpose
-Give doc-sweep a PR-time, deterministic (no-LLM, no-secret) docs-staleness check that fails a
-pull request when non-doc files changed but no documentation did — closing the enforcement gap
-the local `revise-docs-push-guard` hook cannot reach (human commits, contributors without
-doc-sweep, and fork PRs). The check is keyed on the PR merge base (no marker), and a code-only
-change clears it by updating docs or adding a `[skip docs]` acknowledgment (in a commit message
-or the PR body) — the same token the local hook honors. It ships as a manual installer skill
-(`install-docs-ci`) that vendors a self-contained check script and scaffolds a `pull_request`
-workflow, so there is no external action reference to trust.
-## Requirements
 ### Requirement: Deterministic PR-time staleness check
 
 doc-sweep SHALL provide a deterministic, no-LLM, no-secret check that runs on a pull request
@@ -55,31 +45,6 @@ message in the PR range or to the PR body). The check SHALL parse the event/diff
 - **WHEN** a PR changes only files under a configured excluded directory
 - **THEN** those files count as neither doc nor non-doc and the check passes
 
-### Requirement: Shared acknowledgment token
-
-The check SHALL treat a pull request as acknowledged — and pass despite a code-only diff — when
-any one of the following is present: a `[skip docs]` token in any commit message within the PR
-range; a `[skip docs]` token in the pull request body; or an actual doc-set change (implicit
-pass). The commit-message form and the PR-body form SHALL be equivalent so that an author who
-forgot to include the token in a commit can clear the check by editing the PR body without
-rewriting git history. `[skip docs]` (chosen to mirror the familiar `[skip ci]` convention) SHALL
-be the single acknowledgment token shared with the local `revise-docs-push-guard` hook.
-
-#### Scenario: Commit-message ack passes
-
-- **WHEN** a PR has a code-only diff and any commit message in range contains `[skip docs]`
-- **THEN** the check passes
-
-#### Scenario: PR-body ack passes
-
-- **WHEN** a PR has a code-only diff, no `[skip docs]` in any commit message, but the PR body contains `[skip docs]`
-- **THEN** the check passes
-
-#### Scenario: Ack token is shared with the hook
-
-- **WHEN** the acknowledgment token is defined
-- **THEN** it is the same `[skip docs]` token the local push-guard hook recognizes, so both guards share one language
-
 ### Requirement: Manual installer skill scaffolds the workflow
 
 doc-sweep SHALL provide a manual, model-non-invocable skill (`install-docs-ci`,
@@ -115,4 +80,3 @@ confirms.
 
 - **WHEN** doc-sweep is installed but the installer skill has not been run
 - **THEN** no workflow is scaffolded and no pull request is gated
-

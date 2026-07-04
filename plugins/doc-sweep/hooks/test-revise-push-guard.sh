@@ -41,7 +41,7 @@ out="$(run 'DOC_SWEEP_REVISE_SKIP=1 git push' "$repo" "$no_cfg")"; assert_allow 
 # 6. doc-sweep-only self-skip in repo without CLAUDE.md markers → allow
 repo2="$(mktemp -d)"; git -C "$repo2" init -q; git -C "$repo2" config user.email t@t; git -C "$repo2" config user.name t
 echo x > "$repo2/a.js"; git -C "$repo2" add -A; git -C "$repo2" commit -qm i
-cfg6="$(mktemp)"; echo '{"docMode":"default","repoScope":"doc-sweep-only"}' > "$cfg6"
+cfg6="$(mktemp)"; echo '{"repoScope":"doc-sweep-only"}' > "$cfg6"
 out="$(run 'git push' "$repo2" "$cfg6")"; assert_allow "$out" "doc-sweep-only self-skip"
 
 # 7. error/fail-open: cwd not a repo → allow
@@ -59,10 +59,11 @@ out="$(run 'git push --no-verify' "$repo" "$no_cfg")"; assert_allow "$out" "--no
 repo="$(mkrepo)"; mark "$repo"; commitfile "$repo" docs/api/ref.md
 out="$(run 'git push' "$repo" "$no_cfg")"; assert_allow "$out" "deep docs/ path allows push"
 
-# 11. minimal docMode: CHANGELOG change is non-doc → deny
+# 11. custom docPatterns: CHANGELOG no longer in the doc set → deny (docMode is retired;
+#     this is the docPatterns equivalent of the old "minimal" docMode)
 repo="$(mkrepo)"; mark "$repo"; commitfile "$repo" CHANGELOG.md
-cfg11="$(mktemp)"; echo '{"docMode":"minimal","repoScope":"all"}' > "$cfg11"
-out="$(run 'git push' "$repo" "$cfg11")"; assert_deny "$out" "minimal docMode: CHANGELOG is non-doc"
+cfg11="$(mktemp)"; echo '{"repoScope":"all","docPatterns":["**/CLAUDE*.md","**/README*.md"]}' > "$cfg11"
+out="$(run 'git push' "$repo" "$cfg11")"; assert_deny "$out" "custom docPatterns: CHANGELOG is non-doc"
 
 # --- Task 1: configurable trigger ---
 
@@ -94,5 +95,53 @@ out="$(run 'git push' "$repo" "$no_cfg")"; assert_allow "$out" "[skip docs] in c
 # a later un-acked non-doc commit still blocks (token must be present in the range)
 commitfile "$repo" other.js
 out="$(run 'git push' "$repo" "$no_cfg")"; assert_deny "$out" "un-acked later non-doc commit still denies"
+
+# --- shared classifier (doc-classify.mjs) parity regressions ---
+
+# .claude markdown-only change since marker → allow (regression)
+repo="$(mkrepo)"; mark "$repo"; commitfile "$repo" .claude/context/audience-rules.md
+out="$(run 'git push' "$repo" "$no_cfg")"; assert_allow "$out" ".claude/*.md change allows push"
+
+# test-only change since marker → allow (exempt)
+repo="$(mkrepo)"; mark "$repo"; commitfile "$repo" src/app.test.js
+out="$(run 'git push' "$repo" "$no_cfg")"; assert_allow "$out" "test-only change allows push (exempt)"
+
+# --- Finding 1 regression: merge-commit bypass in the per-commit [skip docs] loop ---
+# `git diff-tree --no-commit-id --name-only -r <merge-sha>` prints nothing for merge commits,
+# so a non-doc file introduced only by a merge (e.g. a conflict resolution) used to fall through
+# to allow even though it's genuinely un-acked. Build two branches that truly conflict on
+# README.md, merge with --no-ff, resolve the conflict AND introduce a new non-doc file
+# (sneaky.js) in the merge commit itself.
+
+# 12. merge-commit-introduced non-doc, no [skip docs] anywhere → deny
+repo="$(mkrepo)"
+( cd "$repo" && echo base > README.md && git add . && git commit -qm "add readme" )
+mark "$repo"
+base_branch="$(git -C "$repo" symbolic-ref --short HEAD)"
+( cd "$repo" && git checkout -qb feature-a )
+( cd "$repo" && echo line-a >> README.md && git commit -qam "readme change a" )
+( cd "$repo" && git checkout -q "$base_branch" && git checkout -qb feature-b )
+( cd "$repo" && echo line-b >> README.md && git commit -qam "readme change b" )
+( cd "$repo" && git checkout -q "$base_branch" && git merge --no-ff -q feature-a -m "merge feature-a" )
+( cd "$repo" && git merge --no-ff feature-b -m "merge feature-b" >/dev/null 2>&1
+  echo resolved > README.md && echo sneaky > sneaky.js && git add -A \
+    && git commit -qm "merge feature-b: resolve conflict, add sneaky.js" )
+out="$(run 'git push' "$repo" "$no_cfg")"; assert_deny "$out" "merge-commit-introduced non-doc denies"
+
+# 13. companion: identical conflict/merge, but every commit (branches + both merges) carries
+#     [skip docs] → allow (proves this is the ack rule, not a blanket merge block)
+repo="$(mkrepo)"
+( cd "$repo" && echo base > README.md && git add . && git commit -qm "add readme" )
+mark "$repo"
+base_branch="$(git -C "$repo" symbolic-ref --short HEAD)"
+( cd "$repo" && git checkout -qb feature-a )
+( cd "$repo" && echo line-a >> README.md && git commit -qam "readme change a [skip docs]" )
+( cd "$repo" && git checkout -q "$base_branch" && git checkout -qb feature-b )
+( cd "$repo" && echo line-b >> README.md && git commit -qam "readme change b [skip docs]" )
+( cd "$repo" && git checkout -q "$base_branch" && git merge --no-ff -q feature-a -m "merge feature-a [skip docs]" )
+( cd "$repo" && git merge --no-ff feature-b -m "merge feature-b [skip docs]" >/dev/null 2>&1
+  echo resolved > README.md && echo sneaky > sneaky.js && git add -A \
+    && git commit -qm "merge feature-b: resolve conflict, add sneaky.js [skip docs]" )
+out="$(run 'git push' "$repo" "$no_cfg")"; assert_allow "$out" "merge-commit non-doc with [skip docs] on every commit allows"
 
 exit $fail

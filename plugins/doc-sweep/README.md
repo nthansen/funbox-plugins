@@ -105,7 +105,9 @@ glob list — first-party changes that never require docs, matched *before* `doc
 built-in default covers common test globs (`*.test.*`, `*.spec.*`, `test/**`, `tests/**`,
 `__tests__/**`, `*_test.go`, `*_test.py`), so a change that only touches tests passes without a
 `[skip docs]` ack — but a commit that mixes a test file with real source still enforces on the
-source file. Both lists are fully configurable per-installer (see "Doc-file set" below).
+source file. `docPatterns` is an installer prompt (see "Doc-file set" below); `exemptPatterns`
+isn't prompted — configure it by hand-editing the per-install config JSON that the classifier
+reads via `--config`.
 
 Nothing is installed automatically. To set it up, run:
 

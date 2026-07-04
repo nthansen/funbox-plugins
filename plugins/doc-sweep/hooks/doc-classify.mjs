@@ -49,7 +49,7 @@ export function globToRegExp(glob) {
 export function classify(files, { docPatterns, excludeDirs, exemptPatterns } = {}) {
   const docRes = ((docPatterns && docPatterns.length) ? docPatterns : DEFAULT_DOC_PATTERNS).map(globToRegExp);
   const exemptRes = ((exemptPatterns && exemptPatterns.length) ? exemptPatterns : DEFAULT_EXEMPT_PATTERNS).map(globToRegExp);
-  const excludes = excludeDirs || [];
+  const excludes = (excludeDirs || []).map((ex) => ex.replace(/\/+$/, ''));
   const nonDoc = [];
   let docChanged = false;
   for (const f of files) {

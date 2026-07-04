@@ -62,3 +62,15 @@ test('configured exemptPatterns replaces the default', () => {
   const r = classify(['a.test.js'], { exemptPatterns: ['**/*.gen.js'] });
   assert.deepEqual(r.nonDoc, ['a.test.js']); // .test.js no longer exempt
 });
+
+test('excludeDirs entry with a trailing slash still excludes', () => {
+  const r = classify(['vendor/a.js'], { excludeDirs: ['vendor/'] });
+  assert.deepEqual(r.nonDoc, []);
+  assert.equal(r.docChanged, false);
+});
+
+test('empty docPatterns falls back to the built-in default', () => {
+  const r = classify(['README.md'], { docPatterns: [] });
+  assert.equal(r.docChanged, true);
+  assert.deepEqual(r.nonDoc, []);
+});

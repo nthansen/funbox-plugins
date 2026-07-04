@@ -30,8 +30,9 @@ For what the plugin does and how to use it, see [README.md](README.md).
   `test/**`, `tests/**`, `__tests__/**`, `*_test.go`, `*_test.py`) — a change whose only non-doc
   files are exempt now clears both the CI check and the push guard *without* a `[skip docs]` ack,
   so test-only PRs and pushes are never blocked. A change that mixes an exempt file with real
-  source still enforces on the source file. Configurable per-installer, same mechanism as
-  `docPatterns`.
+  source still enforces on the source file. Unlike `docPatterns` (an installer prompt),
+  `exemptPatterns` isn't prompted for — configure it by hand-editing the per-install config JSON
+  that the classifier reads via `--config`.
 - Funbox's own `docs-staleness.yml` needs no change to pick this up — it runs the check with no
   config, so the fixed built-in default (including `.claude/**`) applies automatically.
 - New `node --test` suite, `hooks/doc-classify.test.mjs`, covering glob translation, default

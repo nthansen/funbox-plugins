@@ -7,7 +7,7 @@
       "assertions": [
         "Vendors the check script docs-ci-check.sh into the project's .github/doc-sweep/ directory",
         "Also copies doc-classify.mjs alongside docs-ci-check.sh into .github/doc-sweep/ so the classifier resolves at runtime",
-        "Writes a config JSON at .github/doc-sweep/docs-ci.json capturing docPatterns (a glob list) AND an excludeDirs array",
+        "For the default doc-file set, writes a config JSON at .github/doc-sweep/docs-ci.json that OMITS docPatterns (the classifier's built-in default applies) and records an excludeDirs array",
         "Scaffolds a pull_request workflow at .github/workflows/doc-sweep-docs.yml that runs the vendored check script with checkout fetch-depth:0",
         "Prints a structured summary listing the workflow/script/classifier/config paths, the doc-file set, the [skip docs] token, the branch-protection note, and how to edit/uninstall",
         "Does not scaffold anything until the user confirms",

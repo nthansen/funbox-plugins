@@ -13,7 +13,7 @@
 ## 3. Evals + quality gate
 
 - [x] 3.1 `install-docs-ci/evals/evals.json` and `install-revise-hook/evals/evals.json`: add an assertion that choosing add-extras records `exemptPatterns` as (built-in tests + additions) in the config and persists it to `audience-rules.md`; keeping the default omits `exemptPatterns`.
-- [ ] 3.2 Regenerate both `evals/benchmark.json` via real eval runs so they clear the threshold; `node scripts/check-skill-gate.mjs` passes.
+- [x] 3.2 Regenerate both `evals/benchmark.json` via real eval runs so they clear the threshold; `node scripts/check-skill-gate.mjs` passes.
 
 ## 4. Validation + adversarial review
 

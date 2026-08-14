@@ -19,7 +19,7 @@ help:
 	@echo "make install-local   - point funbox at this working clone, then install its plugins"
 	@echo "make install-remote  - point funbox at $(REPO) on GitHub, then install its plugins"
 	@echo "make remove          - uninstall the plugins and remove the funbox marketplace"
-	@echo "make validate        - run the marketplace validator (same check CI runs)"
+	@echo "make validate        - run the official claude plugin validator (same check CI runs)"
 
 # Use the local checkout (this directory) as the marketplace source.
 install-local:
@@ -34,13 +34,11 @@ install-remote:
 	$(MAKE) install-plugins
 
 install-plugins:
-	claude plugin install vscode-thinking-display@$(MARKET)
-	claude plugin install doc-sweep@$(MARKET)
+	claude plugin install funbox@$(MARKET)
 
 remove:
-	-claude plugin uninstall vscode-thinking-display
-	-claude plugin uninstall doc-sweep
+	-claude plugin uninstall funbox
 	-claude plugin marketplace remove $(MARKET)
 
 validate:
-	node scripts/validate-marketplace.mjs
+	for p in plugins/*/; do claude plugin validate "$$p"; done

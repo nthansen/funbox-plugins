@@ -10,40 +10,29 @@ From inside Claude Code:
 /plugin marketplace add nthansen/funbox-plugins
 ```
 
-Then install any plugin below, and update later with `/plugin marketplace update funbox`.
+Then install the plugin below, and update later with `/plugin marketplace update funbox`.
 
 ## Plugins
 
-### [`vscode-thinking-display`](plugins/vscode-thinking-display/) — see thinking on Opus/Fable
-
-On Opus/Fable models the VS Code Claude Code extension renders thinking as empty, unexpandable
-"Thought for Xs" stubs — an upstream bug where it never asks the API for thinking summaries.
-This plugin patches the extension to bring the summaries back, and can optionally default
-thinking blocks to expanded. Reversible, with backups. →
-[details](plugins/vscode-thinking-display/)
-
-```text
-/plugin install vscode-thinking-display@funbox
-```
-
-### [`doc-sweep`](plugins/doc-sweep/) — keep docs current and in the right file
+### [`funbox`](plugins/funbox/) — keep docs current and in the right file
 
 A repo's docs serve two audiences, each with a shared (committed) file and an optional local
 (gitignored) twin: `CLAUDE.md` / `CLAUDE.local.md` for Claude, and `README.md` /
 `README.local.md` for humans. They drift out of date after a working session, and content lands
 in the wrong place — a machine-specific path baked into a shared file, or Claude-only notes
-cluttering a `README`. doc-sweep enforces these **audience rules** (a bundled default you can
-override per project): its skills audit doc health (`audit-docs`), revise docs from what changed
-(`revise-docs`), and scaffold a project-specific rules overlay (`init-audience-rules`) — keeping
-each piece in its right home, and per-developer content in the `.local.md` twin. →
-[details](plugins/doc-sweep/)
+cluttering a `README`. funbox enforces these **audience rules** (a bundled default you can
+override per project) and, crucially, writes docs from the **live session context** — its skills
+audit doc health (`audit-docs`), revise docs from what changed (`revise-docs`), and scaffold a
+project-specific rules overlay (`init-audience-rules`) — keeping each piece in its right home, and
+per-developer content in the `.local.md` twin. →
+[details](plugins/funbox/)
 
 ```text
-/plugin install doc-sweep@funbox
+/plugin install funbox@funbox
 ```
 
-Each plugin is self-contained under [`plugins/`](plugins/) with its own `plugin.json`,
-README, and CHANGELOG. Plugins roll on `main` — every commit is the current version, and
+The plugin is self-contained under [`plugins/`](plugins/) with its own `plugin.json`, README, and
+CHANGELOG. Plugins roll on `main` — every commit is the current version, and
 `/plugin marketplace update funbox` pulls the latest.
 
 ## Layout
@@ -51,8 +40,7 @@ README, and CHANGELOG. Plugins roll on `main` — every commit is the current ve
 ```
 .claude-plugin/marketplace.json   # the funbox catalog (lists each plugin)
 plugins/
-  vscode-thinking-display/        # plugin: VS Code thinking-display patch
-  doc-sweep/                      # plugin: documentation audit, revise, and rules skills
+  funbox/                         # plugin: documentation audit, revise, and rules skills
 ```
 
 Adding a plugin = a new self-contained dir under `plugins/` plus one entry in
@@ -60,15 +48,12 @@ Adding a plugin = a new self-contained dir under `plugins/` plus one entry in
 
 ## Contributing
 
-New plugins are welcome. Every plugin meets an automated, auditable bar (structure, required
-docs, scoped `allowed-tools`, script safety, no secrets, and a per-skill functional eval gate)
-enforced by CI on every PR — see [CONTRIBUTING.md](CONTRIBUTING.md). Run the same checks
-locally with `node scripts/validate-marketplace.mjs` and `node scripts/check-skill-gate.mjs`.
+New plugins are welcome. Every plugin is checked in CI on every PR by the official
+`claude plugin validate` (plus a gitleaks secret scan) — see
+[CONTRIBUTING.md](CONTRIBUTING.md). Run the same check locally with
+`claude plugin validate ./plugins/<your-plugin>`.
 
 ## License
 
 Released into the public domain under [The Unlicense](LICENSE). Do whatever you want with it
 — no attribution required.
-
-Individual plugins may carry their own disclaimers (e.g. `vscode-thinking-display` patches a
-third-party extension at your own risk) — see each plugin's README.

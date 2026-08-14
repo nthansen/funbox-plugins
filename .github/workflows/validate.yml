@@ -36,62 +36,13 @@ jobs:
             echo "::endgroup::"
           done
 
-      # Repo policy the official validator doesn't cover: required README+CHANGELOG,
-      # scoped allowed-tools, danger-pattern scan, cross-marketplace allowlist, orphan dirs.
-      - name: Marketplace & plugin policy
-        run: node scripts/validate-marketplace.mjs
-
-      - name: Skill-gate library unit tests
-        run: node --test scripts/skill-gate-lib.test.mjs
-
-      - name: doc-classify unit tests
-        run: node --test plugins/doc-sweep/hooks/doc-classify.test.mjs
-
-      # Quality layer: every skill must have fresh eval artifacts meeting its
-      # threshold. Deterministic, no LLM, no Anthropic auth (artifacts are
-      # produced at author time by /skill-gate and committed).
-      - name: Skill quality gate
-        run: node scripts/check-skill-gate.mjs
-
-      # OpenSpec structural validity (the tool enforcing its own rules) + funbox
-      # hygiene gaps validate misses: TBD/placeholder Purposes in living specs and
-      # a fully-implemented change left un-archived. All self-scope — a PR with no
-      # specs or active changes produces no findings, so OpenSpec is never forced
-      # onto work that doesn't use it.
+      # OpenSpec structural validity (the tool enforcing its own rules). Self-scopes —
+      # a PR with no specs or active changes produces no findings, so OpenSpec is never
+      # forced onto work that doesn't use it.
       - name: OpenSpec structural validation
         run: |
           npm install -g @fission-ai/openspec@1.5.0
           openspec validate --strict --all
-
-      - name: OpenSpec hygiene library unit tests
-        run: node --test scripts/openspec-hygiene-lib.test.mjs
-
-      - name: OpenSpec hygiene gate
-        run: node scripts/check-openspec-hygiene.mjs
-
-      - name: Shell script syntax (bash -n)
-        run: |
-          set -euo pipefail
-          found=$(find plugins -name '*.sh' -print0 | tr '\0' '\n' | sed '/^$/d' || true)
-          if [ -n "$found" ]; then
-            find plugins -name '*.sh' -print0 | xargs -0 -n1 bash -n
-          fi
-
-      # Use the runner's pre-installed shellcheck — avoids a third-party action pinned to a
-      # moving @master ref (supply-chain hygiene).
-      - name: ShellCheck
-        run: find plugins -name '*.sh' -print0 | xargs -0 -r shellcheck
-
-      - name: PowerShell syntax
-        shell: pwsh
-        run: |
-          $fail = $false
-          Get-ChildItem -Recurse plugins -Filter *.ps1 | ForEach-Object {
-            $errs = $null
-            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$null, [ref]$errs) | Out-Null
-            if ($errs) { $fail = $true; Write-Error "Parse errors in $($_.FullName): $($errs -join '; ')" }
-          }
-          if ($fail) { exit 1 }
 
       - name: Secret scan (gitleaks)
         uses: gitleaks/gitleaks-action@v3

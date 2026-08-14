@@ -1,6 +1,6 @@
 # Documentation audience rules — funbox project overlay
 
-> doc-sweep **overlay** — layered on the invariant base (`audience-rules-base.md`); lists
+> funbox doc-skills **overlay** — layered on the invariant base (`audience-rules-base.md`); lists
 > only this project's differences. The base still applies in full.
 
 ## Added file types
@@ -19,11 +19,3 @@
 funbox is cross-platform: committed `*.sh` **and** `*.ps1` are both first-class shared scripts —
 do **not** push PowerShell content to a `.local.md` twin. Only machine-specific *paths* go local.
 (The EOL/CRLF and versioning rationale lives in `CLAUDE.md`, not here.)
-
-## Vendored directories
-
-> Used by the doc-sweep revise-docs push guard to ignore vendored/third-party trees when
-> deciding whether docs are stale. Scan (2026-06-20) found none: no submodules, no non-root
-> package manifests, no `vendor`/`third_party`/`node_modules`/etc. at the root.
-
-excludeDirs: []

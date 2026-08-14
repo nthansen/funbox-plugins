@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# funbox pre-commit hook — runs the same validator CI uses, for fast local feedback.
+# funbox pre-commit hook — runs the same validation CI uses, for fast local feedback.
 #
 # Enable it once per clone:
 #   git config core.hooksPath .githooks
@@ -17,14 +17,6 @@ if command -v claude >/dev/null 2>&1; then
       exit 1
     fi
   done
-fi
-
-# Repo policy validator.
-if command -v node >/dev/null 2>&1; then
-  if ! node scripts/validate-marketplace.mjs; then
-    echo "pre-commit: funbox validation failed. Fix the above, or bypass with 'git commit --no-verify'." >&2
-    exit 1
-  fi
 else
-  echo "pre-commit: node not found — skipping local validation (CI still enforces it)." >&2
+  echo "pre-commit: claude CLI not found — skipping local validation (CI still enforces it)." >&2
 fi

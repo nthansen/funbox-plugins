@@ -16,16 +16,30 @@ Then install the plugin below, and update later with `/plugin marketplace update
 
 ### [`lore`](plugins/lore/) — keep docs and Claude rules current
 
-Your repo's docs serve two audiences: `CLAUDE.md` for Claude, `README.md` for humans — each with
-a gitignored `.local.md` twin for machine-specific notes. After a working session they drift, and
-content lands in the wrong file: a local path in a shared doc, or Claude-only notes in a `README`.
+Your repo's docs serve two audiences:
 
-lore keeps them sorted by audience and writes them from your **live session context** — what a
-"doc must change when code changes" check can't do. Five skills: `revise-docs` (update from what
-changed), `audit-docs` (check doc health), `init-audience-rules` (scaffold per-project rules),
-`init-claude-rules` (build `.claude/rules` from your code), and `revise-claude-rules` (fold
-session learnings in). →
-[details](plugins/lore/)
+- **`CLAUDE.md`** — for Claude
+- **`README.md`** — for humans
+
+Each has a gitignored `.local.md` twin for your machine-specific notes.
+
+After a working session, docs drift — and content lands in the wrong file: a local path in a
+shared doc, or Claude-only notes in a `README`.
+
+**`lore` keeps them sorted by audience**, and writes them from your **live session context** —
+something a "doc must change when code changes" check can't do.
+
+Five skills:
+
+- **`revise-docs`** — update the docs from what changed this session
+- **`audit-docs`** — check documentation health, any time
+- **`init-audience-rules`** — scaffold per-project audience rules
+- **`init-claude-rules`** — build `.claude/rules` from your code
+- **`revise-claude-rules`** — fold session learnings into existing rules
+
+→ [See the full details](plugins/lore/)
+
+Install it:
 
 ```text
 /plugin install lore@funbox

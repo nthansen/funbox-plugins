@@ -1,12 +1,12 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
-  "name": "funbox",
+  "name": "lore",
   "description": "Keep CLAUDE.md/README docs swept by audience, generated from live session context — revise-docs, audit-docs, and init-audience-rules skills.",
   "author": {
     "name": "nthansen",
     "url": "https://github.com/nthansen"
   },
-  "homepage": "https://github.com/nthansen/funbox-plugins/tree/main/plugins/funbox",
+  "homepage": "https://github.com/nthansen/funbox-plugins/tree/main/plugins/lore",
   "repository": "https://github.com/nthansen/funbox-plugins",
   "keywords": [
     "claude-code",

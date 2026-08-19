@@ -1,6 +1,6 @@
 # Documentation audience rules — funbox project overlay
 
-> funbox doc-skills **overlay** — layered on the invariant base (`audience-rules-base.md`); lists
+> lore doc-skills **overlay** — layered on the invariant base (`audience-rules-base.md`); lists
 > only this project's differences. The base still applies in full.
 
 ## Added file types

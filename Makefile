@@ -34,10 +34,10 @@ install-remote:
 	$(MAKE) install-plugins
 
 install-plugins:
-	claude plugin install funbox@$(MARKET)
+	claude plugin install lore@$(MARKET)
 
 remove:
-	-claude plugin uninstall funbox
+	-claude plugin uninstall lore
 	-claude plugin marketplace remove $(MARKET)
 
 validate:

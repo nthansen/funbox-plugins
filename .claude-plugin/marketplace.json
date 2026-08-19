@@ -10,7 +10,7 @@
     {
       "name": "funbox",
       "source": "./plugins/funbox",
-      "description": "A kit of Claude Code skills: keep CLAUDE.md/README docs swept by audience, and patch the VS Code extension so Opus/Fable render thinking summaries."
+      "description": "A kit of Claude Code skills: keep CLAUDE.md/README docs swept by audience, and derive a repo's .claude/rules from its own code then keep them current from session learnings, evidence-backed and user-confirmed."
     }
   ]
 }

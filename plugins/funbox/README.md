@@ -44,8 +44,25 @@ mechanical "a doc must change when code changes" check can't do.
   skills above apply *this repo's* conventions on top of the invariant base. Inspects the repo
   (primary shell/OS, monorepo layout, existing doc conventions) and writes a small, team-shared
   overlay of just the project's differences — with approval before writing.
+- **`init-claude-rules`** — the `.claude/rules` counterpart to `/init` for CLAUDE.md: builds a
+  repo's Claude rules by reading them *off the code* instead of writing them from memory. Works on
+  any codebase (git optional); run it from the root of the repo or folder you want scanned. It
+  analyzes structure, recurring code patterns, and declared config signals; walks you through each
+  observed convention **with its evidence**; and writes only the rules you confirm. Path-specific
+  conventions land as `paths:`-scoped files under `.claude/rules/` (loaded only when Claude reads
+  matching files); genuinely repo-wide standards go to a concise `CLAUDE.md` entry. Large
+  tracked-but-irrelevant directories can be excluded via `.claude/rules-ignore`. Existing rules are
+  merged, never clobbered.
+- **`revise-claude-rules`** — the `.claude/rules` counterpart to `revise-docs`, and the incremental
+  sibling of `init-claude-rules`: after a working session it reviews what the session revealed about
+  the repo's conventions — a rule that proved stale, a new pattern you introduced, a convention you
+  and the user agreed on, or guidance repeatedly needed but unruled — and folds those learnings into
+  the **existing** `.claude/rules`. It is session-driven, not a cold re-scan (that's
+  `init-claude-rules`): each change is verified against the current code, presented with its
+  evidence and exact diff, and merged non-destructively — stale-rule removal is flag-and-confirm. If
+  no rules exist yet, it points you to `init-claude-rules`.
 
-All three ask for approval before changing anything.
+All five ask for approval before changing anything.
 
 ## Audience rules
 

@@ -1,7 +1,6 @@
 # claude-rules-generation Specification
 
 ## Purpose
-
 Analyze a repository or folder from a chosen scan root (git optional) and, interactively with the
 user, build evidence-backed, path-scoped Claude rule files under `.claude/rules/` — each carrying
 frontmatter for contextual loading — whose rules are inferred from observed structure, recurring

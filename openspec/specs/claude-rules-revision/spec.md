@@ -1,7 +1,6 @@
 # claude-rules-revision Specification
 
 ## Purpose
-
 Review the current session for convention learnings — a rule that proved stale, a new pattern
 introduced, a convention agreed with the user, or a gap repeatedly hit — and fold them into the
 repository's existing `.claude/rules` (and repo-wide `CLAUDE.md` rules), following Claude Code's

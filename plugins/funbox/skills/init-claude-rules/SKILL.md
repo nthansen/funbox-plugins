@@ -170,8 +170,8 @@ when a rule file already covers the same concern, **edit that file**: union the 
 into its frontmatter list (dedup), and revise the matching body section in place rather than
 appending a duplicate. When no existing file covers the concern, add a new sibling file. Leave
 unrelated files and sections untouched. When an **existing rule contradicts** what you now observe,
-**flag it** rather than silently keeping or deleting it. Where the repo runs funbox's doc-sweep,
-doc-sweep owns `CLAUDE.md`'s audience/structure — propose only concise entries there and defer to
+**flag it** rather than silently keeping or deleting it. Where the repo runs funbox's doc skills,
+they own `CLAUDE.md`'s audience/structure — propose only concise entries there and defer to
 review.
 
 ## Step 6 — Report

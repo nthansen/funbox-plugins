@@ -1,17 +1,17 @@
 ---
 name: init-audience-rules
-description: Scaffold a project-specific audience-rules overlay for doc-sweep — the small set of conventions layered on top of the invariant base (extra doc file types, per-file contents emphasis, shell/path stance). Use when setting up doc-sweep for a project, customizing what belongs in CLAUDE.md vs README, adding a project-specific doc file type, or initializing audience rules.
+description: Scaffold a project-specific audience-rules overlay for funbox — the small set of conventions layered on top of the invariant base (extra doc file types, per-file contents emphasis, shell/path stance). Use when setting up funbox for a project, customizing what belongs in CLAUDE.md vs README, adding a project-specific doc file type, or initializing audience rules.
 allowed-tools: Read, Glob, Grep, Write
 disable-model-invocation: true
 ---
 
-Create a project-scoped audience-rules **overlay** so doc-sweep's `revise-docs` and
+Create a project-scoped audience-rules **overlay** so funbox's `revise-docs` and
 `audit-docs` skills apply *this repo's* conventions on top of the invariant base. The overlay
 holds only the project's differences — it does **not** restate the file-boundary law.
 
-## How doc-sweep resolves rules (read first)
+## How funbox resolves rules (read first)
 
-doc-sweep loads rules in two layers, and the effective ruleset is **base + overlay**:
+funbox loads rules in two layers, and the effective ruleset is **base + overlay**:
 
 - **Base** (`${CLAUDE_PLUGIN_ROOT}/context/audience-rules-base.md`) — the invariant
   file-boundary law (which files are Claude- vs human-facing, shared vs local; the `.local.md`
@@ -57,7 +57,7 @@ ruleset.
    ```markdown
    # Documentation audience rules — <project> project overlay
 
-   > doc-sweep **overlay** — layered on the invariant base (`audience-rules-base.md`); lists
+   > funbox doc-skills **overlay** — layered on the invariant base (`audience-rules-base.md`); lists
    > only this project's differences. The base still applies in full.
    ```
 

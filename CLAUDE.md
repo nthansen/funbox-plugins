@@ -10,7 +10,7 @@ self-contained under `plugins/`.
 - `plugins/<name>/.claude-plugin/plugin.json` — plugin manifest; `name` must match the directory **and** the catalog entry.
 - `plugins/<name>/{README.md,CHANGELOG.md}` — required for every plugin.
 - `plugins/<name>/skills/<skill>/SKILL.md` — skills; frontmatter `name` must match the skill directory.
-- `.claude/context/audience-rules.md` — funbox dogfoods its own **doc skills**; this is the repo's
+- `.claude/context/audience-rules.md` — funbox runs its own **doc skills** on itself; this is the repo's
   documentation **audience-rules overlay**, layered on the `funbox` plugin's bundled base
   (`plugins/funbox/context/audience-rules-base.md`). It holds only funbox's deltas; the base
   owns the CLAUDE-vs-README boundary law.

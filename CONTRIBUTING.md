@@ -1,9 +1,8 @@
 # Contributing to funbox
 
-Thanks for wanting to add to **funbox**. To keep the marketplace trustworthy, every plugin
-meets an **auditable, automated bar**: the checks below are enforced by CI
-([`.github/workflows/validate.yml`](.github/workflows/validate.yml)) on every pull request,
-and a PR can't merge until they pass and a maintainer approves. You can run the same checks
+Thanks for wanting to add to **funbox**. Every plugin passes the same automated checks: CI
+([`.github/workflows/validate.yml`](.github/workflows/validate.yml)) runs them on every pull
+request, and a PR can't merge until they pass and a maintainer approves. Run the same checks
 locally — see [Local checks](#local-checks).
 
 ## What a plugin must look like

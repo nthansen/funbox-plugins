@@ -115,7 +115,7 @@ any new `paths:` globs into its frontmatter list (dedup), and revise the matchin
 place** rather than appending a duplicate. Add a new sibling file only when no existing file covers
 the concern. Leave unrelated files and sections untouched. When an **existing rule contradicts** what
 you now observe, **flag it** rather than silently keeping or rewriting it. Where the repo runs
-funbox's doc-sweep, doc-sweep owns `CLAUDE.md`'s audience/structure — propose only concise entries
+funbox's doc skills, they own `CLAUDE.md`'s audience/structure — propose only concise entries
 there and defer to review.
 
 **Rule file shape** (same as `init-claude-rules`): a `.md` file under `.claude/rules/`, kebab-case

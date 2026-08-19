@@ -16,18 +16,15 @@ Then install the plugin below, and update later with `/plugin marketplace update
 
 ### [`funbox`](plugins/funbox/) — keep docs and Claude rules current
 
-A repo's docs serve two audiences, each with a shared (committed) file and an optional local
-(gitignored) twin: `CLAUDE.md` / `CLAUDE.local.md` for Claude, and `README.md` /
-`README.local.md` for humans. They drift out of date after a working session, and content lands
-in the wrong place — a machine-specific path baked into a shared file, or Claude-only notes
-cluttering a `README`. funbox enforces these **audience rules** (a bundled default you can
-override per project) and, crucially, writes docs from the **live session context** — its skills
-audit doc health (`audit-docs`), revise docs from what changed (`revise-docs`), and scaffold a
-project-specific rules overlay (`init-audience-rules`) — keeping each piece in its right home, and
-per-developer content in the `.local.md` twin. It also derives and maintains a repo's
-**`.claude/rules`** from its own code: `init-claude-rules` cold-scans the repo to bootstrap
-evidence-backed, path-scoped rules, and `revise-claude-rules` folds a session's convention
-learnings into them. →
+Your repo's docs serve two audiences: `CLAUDE.md` for Claude, `README.md` for humans — each with
+a gitignored `.local.md` twin for machine-specific notes. After a working session they drift, and
+content lands in the wrong file: a local path in a shared doc, or Claude-only notes in a `README`.
+
+funbox keeps them sorted by audience and writes them from your **live session context** — what a
+"doc must change when code changes" check can't do. Five skills: `revise-docs` (update from what
+changed), `audit-docs` (check doc health), `init-audience-rules` (scaffold per-project rules),
+`init-claude-rules` (build `.claude/rules` from your code), and `revise-claude-rules` (fold
+session learnings in). →
 [details](plugins/funbox/)
 
 ```text

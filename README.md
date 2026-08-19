@@ -14,7 +14,7 @@ Then install the plugin below, and update later with `/plugin marketplace update
 
 ## Plugins
 
-### [`funbox`](plugins/funbox/) — keep docs current and in the right file
+### [`funbox`](plugins/funbox/) — keep docs and Claude rules current
 
 A repo's docs serve two audiences, each with a shared (committed) file and an optional local
 (gitignored) twin: `CLAUDE.md` / `CLAUDE.local.md` for Claude, and `README.md` /
@@ -24,7 +24,10 @@ cluttering a `README`. funbox enforces these **audience rules** (a bundled defau
 override per project) and, crucially, writes docs from the **live session context** — its skills
 audit doc health (`audit-docs`), revise docs from what changed (`revise-docs`), and scaffold a
 project-specific rules overlay (`init-audience-rules`) — keeping each piece in its right home, and
-per-developer content in the `.local.md` twin. →
+per-developer content in the `.local.md` twin. It also derives and maintains a repo's
+**`.claude/rules`** from its own code: `init-claude-rules` cold-scans the repo to bootstrap
+evidence-backed, path-scoped rules, and `revise-claude-rules` folds a session's convention
+learnings into them. →
 [details](plugins/funbox/)
 
 ```text

@@ -43,7 +43,9 @@ self-contained under `plugins/`.
   onto a PR that doesn't use it. OpenSpec here is **specs + structural validation only**: the
   `openspec/specs/` artifacts (project schema `spec-driven`, in `openspec/config.yaml`) checked
   by CI. The interactive `/opsx:*` authoring commands and superpowers-bridge routing were
-  removed — edit specs directly or drive the `openspec` CLI yourself.
+  removed — edit specs directly or drive the `openspec` CLI yourself. (Running the CLI re-emits
+  `.claude/commands/opsx/`, `.claude/skills/openspec-*/`, and an empty root `package-lock.json` —
+  all **gitignored**, so a CLI run won't dirty the tree; this repo isn't an npm project.)
 - The OpenSpec CLI is the npm package **`@fission-ai/openspec`** (CI pins
   `@fission-ai/openspec@1.9.0`). The bare name `openspec` is an unrelated squatter that
   installs cleanly but ships **no `openspec` binary** (`command not found`) — always use

@@ -41,7 +41,7 @@ jobs:
       # forced onto work that doesn't use it.
       - name: OpenSpec structural validation
         run: |
-          npm install -g @fission-ai/openspec@1.5.0
+          npm install -g @fission-ai/openspec@1.9.0
           openspec validate --strict --all
 
       - name: Secret scan (gitleaks)

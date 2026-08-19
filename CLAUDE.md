@@ -45,7 +45,7 @@ self-contained under `plugins/`.
   by CI. The interactive `/opsx:*` authoring commands and superpowers-bridge routing were
   removed — edit specs directly or drive the `openspec` CLI yourself.
 - The OpenSpec CLI is the npm package **`@fission-ai/openspec`** (CI pins
-  `@fission-ai/openspec@1.5.0`). The bare name `openspec` is an unrelated squatter that
+  `@fission-ai/openspec@1.9.0`). The bare name `openspec` is an unrelated squatter that
   installs cleanly but ships **no `openspec` binary** (`command not found`) — always use
   the scoped name to install/run the CLI.
 

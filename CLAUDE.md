@@ -2,7 +2,9 @@
 
 **funbox** is a Claude Code **plugin marketplace**. Repo name `funbox-plugins`; marketplace
 name is `funbox` (the `name` in `.claude-plugin/marketplace.json`). Each plugin is
-self-contained under `plugins/`.
+self-contained under `plugins/`. The marketplace name and plugin names are distinct: the sole
+plugin is named `lore`, so it installs as `lore@funbox` (don't collapse the two back into
+`funbox@funbox`).
 
 ## Layout
 
@@ -10,11 +12,11 @@ self-contained under `plugins/`.
 - `plugins/<name>/.claude-plugin/plugin.json` — plugin manifest; `name` must match the directory **and** the catalog entry.
 - `plugins/<name>/{README.md,CHANGELOG.md}` — required for every plugin.
 - `plugins/<name>/skills/<skill>/SKILL.md` — skills; frontmatter `name` must match the skill directory.
-- `.claude/context/audience-rules.md` — funbox runs its own **doc skills** on itself; this is the repo's
-  documentation **audience-rules overlay**, layered on the `funbox` plugin's bundled base
-  (`plugins/funbox/context/audience-rules-base.md`). It holds only funbox's deltas; the base
+- `.claude/context/audience-rules.md` — this repo runs the `lore` plugin's own **doc skills** on itself;
+  this is the repo's documentation **audience-rules overlay**, layered on the `lore` plugin's bundled base
+  (`plugins/lore/context/audience-rules-base.md`). It holds only this repo's deltas; the base
   owns the CLAUDE-vs-README boundary law.
-- The `funbox` plugin's `init-audience-rules` skill is **`disable-model-invocation: true` on purpose**
+- The `lore` plugin's `init-audience-rules` skill is **`disable-model-invocation: true` on purpose**
   (manual-only `/`-command): auto-invocation over-triggers on ordinary CLAUDE.md-vs-README doc
   talk. Don't remove it — `revise-docs`/`audit-docs` stay model-invocable.
 - **No hook-based docs guard.** An earlier docs-staleness CI check and a revise-docs pre-push guard
@@ -62,7 +64,7 @@ self-contained under `plugins/`.
 
 ## Dependencies
 
-A plugin depending on another marketplace (e.g. `funbox` →
+A plugin depending on another marketplace (e.g. `lore` →
 `claude-md-management@claude-plugins-official`) needs **both** the `dependencies` entry in its
 `plugin.json` **and** the target marketplace listed in `allowCrossMarketplaceDependenciesOn`
 in `marketplace.json`, or Claude Code can't resolve the dependency at install time.

@@ -1,17 +1,17 @@
 ---
 name: init-audience-rules
-description: Scaffold a project-specific audience-rules overlay for funbox — the small set of conventions layered on top of the invariant base (extra doc file types, per-file contents emphasis, shell/path stance). Use when setting up funbox for a project, customizing what belongs in CLAUDE.md vs README, adding a project-specific doc file type, or initializing audience rules.
+description: Scaffold a project-specific audience-rules overlay for lore — the small set of conventions layered on top of the invariant base (extra doc file types, per-file contents emphasis, shell/path stance). Use when setting up lore for a project, customizing what belongs in CLAUDE.md vs README, adding a project-specific doc file type, or initializing audience rules.
 allowed-tools: Read, Glob, Grep, Write
 disable-model-invocation: true
 ---
 
-Create a project-scoped audience-rules **overlay** so funbox's `revise-docs` and
+Create a project-scoped audience-rules **overlay** so lore's `revise-docs` and
 `audit-docs` skills apply *this repo's* conventions on top of the invariant base. The overlay
 holds only the project's differences — it does **not** restate the file-boundary law.
 
-## How funbox resolves rules (read first)
+## How lore resolves rules (read first)
 
-funbox loads rules in two layers, and the effective ruleset is **base + overlay**:
+lore loads rules in two layers, and the effective ruleset is **base + overlay**:
 
 - **Base** (`${CLAUDE_PLUGIN_ROOT}/context/audience-rules-base.md`) — the invariant
   file-boundary law (which files are Claude- vs human-facing, shared vs local; the `.local.md`
@@ -57,7 +57,7 @@ ruleset.
    ```markdown
    # Documentation audience rules — <project> project overlay
 
-   > funbox doc-skills **overlay** — layered on the invariant base (`audience-rules-base.md`); lists
+   > lore doc-skills **overlay** — layered on the invariant base (`audience-rules-base.md`); lists
    > only this project's differences. The base still applies in full.
    ```
 

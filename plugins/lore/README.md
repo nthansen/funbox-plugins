@@ -1,4 +1,4 @@
-# funbox
+# lore
 
 Claude Code **skills** that keep your docs sorted by audience — `CLAUDE.md` / `README.md` — writing
 them from what happened in your session.
@@ -9,7 +9,7 @@ Part of the [**funbox**](../../README.md) Claude Code plugin marketplace.
 
 ```text
 /plugin marketplace add nthansen/funbox-plugins
-/plugin install funbox@funbox
+/plugin install lore@funbox
 ```
 
 To update later: `/plugin marketplace update funbox`.
@@ -86,7 +86,7 @@ hand-writing it, run `init-audience-rules`.
 
 Both `revise-docs` and `audit-docs` delegate their `CLAUDE.md` work to the
 **`claude-md-management`** plugin (from the official `claude-plugins-official` marketplace), so
-funbox declares it as a dependency. Installing funbox **auto-installs `claude-md-management`** — as
+lore declares it as a dependency. Installing lore **auto-installs `claude-md-management`** — as
 long as you have the `claude-plugins-official` marketplace added (most setups do). If you don't,
 Claude Code reports a `dependency-unsatisfied` error with the command to add it.
 

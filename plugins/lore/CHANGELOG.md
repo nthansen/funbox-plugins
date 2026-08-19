@@ -1,9 +1,9 @@
-# Changelog — funbox
+# Changelog — lore
 
 Distributed on the **funbox** rolling `main` channel: no pinned versions, no tags. Every commit
 is the current version, resolved by commit SHA; `/plugin marketplace update funbox` moves you to
 the latest. See the
-[commit history](https://github.com/nthansen/funbox-plugins/commits/main/plugins/funbox) for the
+[commit history](https://github.com/nthansen/funbox-plugins/commits/main/plugins/lore) for the
 full record.
 
 ## Unreleased
@@ -27,7 +27,7 @@ full record.
 
 ## Consolidation
 
-The former standalone `doc-sweep` plugin became this `funbox` plugin — the context-driven doc
+The former standalone `doc-sweep` plugin became this `lore` plugin — the context-driven doc
 skills (`revise-docs`, `audit-docs`, `init-audience-rules`), distributed as skills.
 
 Dropped in the process:

@@ -9,3 +9,13 @@ Thumbs.db
 # Personal/local notes — the ".local.md" convention stays out of git
 # (CLAUDE.local.md, audience-rules.local.md, etc.)
 *.local.md
+
+# OpenSpec CLI scaffolding — regenerated on every `openspec` run. The interactive
+# /opsx:* commands and openspec-* skills were deliberately removed from this repo
+# (see CLAUDE.md), so keep the CLI's re-emitted copies out of git. Scoped to those
+# namespaces so a hand-authored command/skill under .claude/ is still trackable.
+.claude/commands/opsx/
+.claude/skills/openspec-*/
+# ...and the empty lockfile `npx @fission-ai/openspec` drops at the repo root
+# (this repo has no package.json — it is not an npm project).
+/package-lock.json
